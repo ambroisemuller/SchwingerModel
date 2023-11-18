@@ -1,7 +1,7 @@
 /**
  * @file    random.utils.hpp
- * @brief   Random number generator
- *          Wrapper of ranlxs/ranlxd algorithm developed by Martin Luescher
+ * @brief   Random number generator.
+ *          Wrapper of ranlxs/ranlxd algorithm developed by Martin Luescher.
  * 
  * @author  Ambroise Muller
  * @date    November 2023
@@ -96,7 +96,7 @@ namespace Random {
     };
 
 
-    static void update(void){
+    static void update(){
         int k, kmax, d;
         dble_vec_t *pmin, *pmax, *pi, *pj;
         kmax = pr;
@@ -128,7 +128,7 @@ namespace Random {
     }
 
 
-    static void define_constants(void){
+    static void define_constants(){
         int k;
         one_bit = ldexp(1.0,-24);
         for (k=0; k<96; k++){

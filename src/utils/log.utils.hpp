@@ -1,6 +1,6 @@
 /**
  * @file    log.utils.hpp
- * @brief   Define Log namespace and associated functionality
+ * @brief   Define Log namespace and associated functionality.
  * 
  * @author  Ambroise Muller
  * @date    November 2023
@@ -89,7 +89,7 @@ namespace Log {
         if (label) {
             std::cout << "\r" << bar_label;
 
-            for (int i = 0; i < 8 - bar_label.size(); ++i) {
+            for (int i = 0; i < 8 - (int)(bar_label.size()); ++i) {
                 std::cout << " ";
             }
         }
