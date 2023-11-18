@@ -1,10 +1,30 @@
-#include <iostream>
+/**
+ * @file    main.hpp
+ * @brief   Main project file.
+ * 
+ * @author  Ambroise Muller
+ * @date    November 2023
+*/
+
+
 #include "src/imports.hpp"
 
 
-int main() {
+int main(int argc, char* argv[]) {
 
-    std::cout << "Building lattice of size " << T << " by " << L << std::endl;
+    if (argc == 1){
+    
+        Random::rlxd_init(1, SEED);
+        Lattice* lattice = new Lattice(Nt, Nx, spacing);
+
+        lattice->gauge->initialize_from("../input/config.csv");
+        lattice->gauge->save_config("../results/gauge_config.csv");
+
+    } else {
+        Log::print("Number of arguments not supported!", Log::ERROR);
+        exit(1);
+    }
 
     return 0;
+    
 }

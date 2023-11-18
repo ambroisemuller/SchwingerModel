@@ -2,6 +2,7 @@
 # PROJECT CONFIGURATION
 ########################
 message("Set up project name and cmake version")
+cmake_minimum_required(VERSION 3.10)
 set(CMAKE_CXX_STANDARD 17)
 project(SchwingerModel)
 
@@ -16,8 +17,8 @@ add_executable(main main.cpp)
 ########################
 
 # UNIT TESTS
-add_executable(test         tests/test.cpp)
-add_test(NAME Test          COMMAND test)
+add_executable(unit_test    tests/unit_test.cpp)
+add_test(NAME Test          COMMAND unit_test)
 
 
 enable_testing()
