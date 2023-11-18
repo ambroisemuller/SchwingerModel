@@ -1,41 +1,40 @@
 
-#include "../structs/gauge.struct.hpp"
 
 class GaugeField {
 
 public:
 
-    GaugeVector     **arr;
-    int             T;
-    int             L;
-    int             V;
+    double  **values;   // stores gauge field values for each lattice site
+    int     T;          // number of sites along temporal direction
+    int     L;          // number of sites along spatial direction
+    int     V;          // total lattice volume
 
     GaugeField(int T_, int L_) : T(T_), L(L_), V(T_*L_) {
-        arr = new GaugeVector*[V];
+        values = new double*[V];
         for (int i=0; i<V; i++){
-            arr[i] = new GaugeVector();
+            values[i] = new double[D];
         }
     }
 
     ~GaugeField(){
         for (int i=0; i<V; i++){
-            delete arr[i];
+            delete values[i];
         }
-        delete[] arr;
+        delete[] values;
     }
 
-    GaugeVector* operator[](int index){
-        return arr[index];
+    double* operator[](int index){
+        return values[index];
     }
 
-    const GaugeVector* operator[](int index) const {
-        return arr[index];
+    const double* operator[](int index) const {
+        return values[index];
     }
 
     void initialize_cold(){
         for (int i=0; i<V; i++){
-            arr[i]->t = 0;
-            arr[i]->x = 0;
+            values[i][0] = 0;
+            values[i][0] = 0;
         }
     }
 
@@ -50,9 +49,9 @@ public:
             istringstream iss(line);
             string token;
             std::getline(iss, token, ',');
-            arr[i]->t = std::stod(token);
+            values[i][0] = std::stod(token);
             std::getline(iss, token, ',');
-            arr[i]->x = std::stod(token);
+            values[i][1] = std::stod(token);
         }
         input.close();
     }
@@ -64,7 +63,7 @@ public:
             exit(1);
         }
         for (int i=0; i<V; i++){
-            output << to_string(arr[i]->t) << ", " << to_string(arr[i]->x) << endl;
+            output << to_string(values[i][0]) << ", " << to_string(values[i][1]) << endl;
         }
         Log::print("Successfully saved gauge field configuration to: "+filename, Log::GOOD_NEWS);
         output.close();

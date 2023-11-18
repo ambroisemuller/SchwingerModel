@@ -1,3 +1,4 @@
-#define     Nt          16              // temporal extent
-#define     Nx          32              // spatial extent
+#define     D           2               // dimension (fixed = 2)
+#define     Nt          4              // temporal extent
+#define     Nx          5              // spatial extent
 #define     spacing     1               // lattice spacing
