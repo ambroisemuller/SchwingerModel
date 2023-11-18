@@ -11,22 +11,17 @@
  * @date    November 2023
 */
 
-class HoppingField {
+
+class HoppingField : public Field<int*> {
 
 public:
-
-    int **values;   // stores gauge field values for each lattice site
-    int T;          // number of sites along temporal direction
-    int L;          // number of sites along spatial direction
-    int V;          // total lattice volume
 
     /**
      * @brief Constructor for HoppingField class.
      * @param T_ Temporal extent of lattice.
      * @param L_ Spatial extent of lattice. 
     */
-    HoppingField(int T_, int L_) : T(T_), L(L_), V(T_*L_) {
-        values = new int*[V];
+    HoppingField(int T_, int L_) : Field(T_, L_) {
         for (int i=0; i<V; i++){
             values[i] = new int[2*D];
         }
@@ -39,23 +34,6 @@ public:
         for (int i=0; i<V; i++){
             delete values[i];
         }
-        delete[] values;
-    }
-
-    /**
-     * @brief Overload of subscript operator.
-     * @param index Index of lattice point to fetch.
-    */
-    int* operator[](int index){
-        return values[index];
-    }
-
-    /**
-     * @brief Read-only overload of subscript operator.
-     * @param index Index of lattice point to fetch.
-    */
-    const int* operator[](int index) const {
-        return values[index];
     }
 
     /**
@@ -72,5 +50,4 @@ public:
 
         }
     }
-
 };

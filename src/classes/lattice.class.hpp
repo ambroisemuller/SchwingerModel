@@ -7,6 +7,7 @@
  * @date    November 2023
 */
 
+#include "field.class.hpp"
 #include "hopping.class.hpp"
 #include "gauge.class.hpp"
 
