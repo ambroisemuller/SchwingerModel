@@ -22,12 +22,14 @@
 #include <iomanip>
 #include <algorithm>
 #include <mutex>
+#include <complex>
 
 using namespace std;
 
 #include "configs/lattice.config.h"
 #include "configs/physics.config.h"
 #include "configs/mc.config.h"
+#include "configs/integrator.config.h"
 #include "configs/misc.config.h"
 #include "configs/observables.config.h"
 #include "utils/log.utils.hpp"

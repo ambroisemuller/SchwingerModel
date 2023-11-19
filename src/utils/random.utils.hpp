@@ -68,7 +68,6 @@ namespace Random {
         int num[96];
     } x;
 
-
     static void error(int no){
         switch(no)
         {
@@ -266,6 +265,24 @@ namespace Random {
         init = 1;
         if (((pr!=202)&&(pr!=397)) || (ir<0) || (ir>11) || (jr<0) || (jr>11) || (jr!=((ir+7)%12)) || (is<0)||(is>91)){
             error(5);
+        }
+    }
+
+    double gauss_normalization = 8.0*atan(1.0);
+
+    void gauss_rand(int n, double *rand){
+        int i = 0;
+        double tmp[2], r, phi;
+        while (i < n){
+            ranlxd(tmp, 2); // two random numbers, flat distribution in [0,1)
+            phi = tmp[0] * gauss_normalization; // compute polar coordinates: angle and radius
+            r = sqrt(-log(1.0-tmp[1])); // map second number [0,1) -> (0,1]
+            rand[i] = r * cos(phi); 
+            i++;
+            if (i < n) {    // compute second only if requested
+                rand[i] = r * sin(phi);
+            }; 
+            i++;
         }
     }
 

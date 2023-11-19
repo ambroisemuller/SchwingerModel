@@ -18,7 +18,7 @@ int main(int argc, char* argv[]) {
         Lattice* lattice = new Lattice(Nt, Nx, spacing);
         // lattice->gauge->initialize_from("../input/config.csv");
         lattice->HMC();
-        lattice->gauge->save_config("../results/gauge_config.csv");
+        lattice->gauge->save_config(OUTPUT_CONFIG);
         lattice->save_results(RESULTS_PATH);
         Log::print(string("Results saved to folder ")+(RESULTS_PATH), Log::GOOD_NEWS);
 

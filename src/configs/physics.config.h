@@ -1,5 +1,4 @@
-#define     KAPPA       0.26
-#define     BETA        4.0
-#define     npf         2           // number of pseudo-fermions for Hasenbusch mass-preconditioning
-#define     mu1         0.0         // first Hasenbusch mass
-#define     mu2         0.08        // second Hasenbusch mass
+#define     KAPPA       0.26            // 
+#define     BETA        4.0             // Wilson lattice coupling constant
+#define     N_PF        2               // number of pseudo-fermions for Hasenbusch mass-preconditioning
+#define     MU_LIST     {0.00, 0.08}    // Hasenbusch masses (length should be equal to N_PF)

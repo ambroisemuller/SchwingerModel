@@ -8,43 +8,52 @@
 */
 
 #include "field.class.hpp"
-#include "hopping.class.hpp"
+#include "force.class.hpp"
+#include "momentum.class.hpp"
 #include "gauge.class.hpp"
+#include "fermion.class.hpp"
 
 class Lattice {
 
 public:
 
-    const int   T;          // Number of sites in temporal direction
-    const int   L;          // Number of sites in spatial direction
-    const int   V;          // Lattice volume
-    double      a;          // Lattice spacing
+    const int   T;                      // Number of sites in temporal direction
+    const int   L;                      // Number of sites in spatial direction
+    const int   V;                      // Lattice volume
+    double      a;                      // Lattice spacing
 
-    GaugeField      *gauge;     // Gauge field
-    HoppingField    *hop;       // Hopping field
+    GaugeField          *gauge;         // Gauge field
+    PseudoFermionField  **pfermion;     // Pseudofermion fields
+
+    double mu_list[N_PF] = MU_LIST;     // Hasenbusch masses
 
 private:
 
-    double          time;           // Simulation time
-    GaugeField      *gauge_old;     // Gauge field from previous step
+    double  time;                       // Simulation time
+    double  eps = TRAJ_LENGTH/N_STEP;   // Molecular dynamics step size  
+
+    GaugeField      *gauge_old;         // Gauge field from previous step
+    MomentumField   *mom;               // Momentum field
+    ForceField      *force;             // Force field
+    ForceField      *force_tmp;         // Auxilliary force field (workspace)
+
+    double dH;                          // Change in energy over trajectory
+    double acc;                         // Metropolis acceptance flag
 
     #if MEASURE_DH
-        double dH;
-        stringstream* csv_dH = new std::stringstream;
+        stringstream* csv_dH = new stringstream;
     #endif
     #if MEASURE_ACC
-        int acc;
-        stringstream* csv_acc = new std::stringstream;
+        stringstream* csv_acc = new stringstream;
     #endif
     #if MEASURE_PLAQUETTE
         double plaq;
-        stringstream* csv_plaq = new std::stringstream;
+        stringstream* csv_plaq = new stringstream;
     #endif
     #if MEASURE_QTOP
         double qtop;
         stringstream* csv_qtop = new std::stringstream;
     #endif
-
     #if MEASURE_PSCC
         double *pscc;
         stringstream* csv_pscc = new std::stringstream;
@@ -66,11 +75,13 @@ public:
         gauge->initialize_cold();
         gauge_old = new GaugeField(T_, L_);
         gauge_old->initialize_cold();
+        Log::print("Successfully initialized gauge fields", Log::VERBOSE);
 
-        hop = new HoppingField(T_, L_);
-        hop->initialize();
-
-        Log::print("Successfully initialized gauge and hopping fields", Log::VERBOSE);
+        pfermion = new PseudoFermionField*[N_PF];
+        for (int i=0; i<N_PF; i++){
+            pfermion[i] = new PseudoFermionField(T_, L_);
+        }
+        Log::print("Successfully initialized pseudofermion fields", Log::VERBOSE);
 
         #if MEASURE_PSCC
             pscc = new double[V];
@@ -84,7 +95,6 @@ public:
     ~Lattice(){
         delete gauge;
         delete gauge_old;
-        delete hop;
     }
 
     /**
@@ -94,6 +104,12 @@ public:
         
         time = 0;
         auto start = chrono::high_resolution_clock::now();
+
+        mom = new MomentumField(T, L);
+        Log::print("Successfully initialized momentum field", Log::VERBOSE);
+        force = new ForceField(T, L);
+        force_tmp = new ForceField(T, L);
+        Log::print("Successfully initialized force fields", Log::VERBOSE);
 
         Log::progressBar(0);
         for (int itraj=0; itraj<N_TRAJ; itraj++) {
@@ -118,7 +134,7 @@ public:
         gauge_old->assign_link(gauge);
 
         double H1 = start_hmc();
-        // @todo integrate();
+        integrate();
         double H2 = hamiltonian();
 
         dH = H2 - H1;
@@ -138,19 +154,105 @@ public:
 
     }
 
-
+    /**
+     * @brief Initialize momentum field and compute initial energy.
+     * @return Energy before MD trajectory.
+    */
     double start_hmc(){
         double H = 0.0;
-        // @todo H += mom_heat();
-        // @todo H += fermion_heat();
-        H += gauge->compute_gauge_action(BETA, hop);
+        H += mom->initialize_momentum();
+        H += fermion_heat();
+        H += gauge->compute_gauge_action(BETA);
         return H;
     }
 
-    double hamiltonian(){
-        return -79;
+    double fermion_heat(){
+        double action = 0.0;
+        if (N_PF > 0){
+            for (int i=0; i<N_PF-1; i++){
+                action += pfermion[i]->setpf2(KAPPA, mu_list[i], mu_list[i+1], RES_ACT);
+            }
+            action += pfermion[N_PF-1]->setpf1(KAPPA, mu_list[N_PF-1]);
+        }   
+        return action;
     }
 
+    double hamiltonian(){
+        double action = mom->compute_momentum_action();
+        if (N_PF > 0){   
+            for (int i=0; i<N_PF-1; i++){
+                action += pfermion[i]->compute_fermion_action2(KAPPA, mu_list[i], mu_list[i+1], RES_ACT);
+            }
+            action += pfermion[N_PF-1]->compute_fermion_action1(KAPPA, mu_list[N_PF-1], RES_ACT);
+        }
+        action += gauge->compute_gauge_action(BETA);
+        return action;
+    }
+
+    void move_momentum(double eps_){
+        force->set_zero();
+        if (N_PF > 0){
+            for (int i=0; i<N_PF-1; i++){
+                pfermion[i]->compute_force2_to(force_tmp, KAPPA, mu_list[i], mu_list[i+1], 1.0, RES_FRC);
+                *force += *force_tmp;
+            }
+            pfermion[N_PF-1]->compute_force1_to(force_tmp, KAPPA, mu_list[N_PF-1], 1.0, RES_FRC);
+            *force += *force_tmp;
+        }
+        gauge->compute_force_to(force_tmp, BETA, 1.0);
+        *force += *force_tmp;
+        for (int i=0; i<V; i++){
+            for (int nu=0; nu<D; nu++){
+                mom->values[i][nu] -= eps_*force->values[i][nu];
+            }
+        }
+    }
+
+    /**
+     * @brief Perform MD evolution of momentum and gauge fields.
+    */
+    void integrate(){
+        #if INT == LFRG
+            for (int i=0; i<N_STEP; i++){
+                move_momentum(0.5*eps);
+                gauge->move_gauge(eps, mom);
+                move_momentum(0.5*eps);
+            }
+        #elif INT == OMF2
+            for (int i=0; i<N_STEP; i++){
+                move_momentum(LAMBDA*eps);
+                gauge->move_gauge(0.5*eps, mom);
+                move_momentum((1.0-2.0*LAMBDA)*eps);
+                gauge->move_gauge(0.5*eps, mom);
+                move_momentum(LAMBDA*eps);
+            }
+        #elif INT == OMF4
+            double  r1=0.08398315262876693,
+                    r2=0.2539785108410595,
+                    r3=0.6822365335719091,
+                    r4=-0.03230286765269967;
+            for (int i=0; i<N_STEP; i++){
+                move_momentum(r1*eps);
+                gauge->move_gauge(r2*eps, mom);
+                move_mom(r3*eps);
+                gauge->move_gauge(r4*eps, mom);
+                move_mom((0.5-r1-r3)*eps);
+                gauge->move_gauge((1-2*(r2+r4))*eps, mom);
+                move_mom((0.5-r1-r3)*eps);
+                gauge->move_gauge(r4*eps, mom);
+                move_mom(r3*eps);
+                gauge->move_gauge(r2*eps, mom);
+                move_mom(r1*eps);
+            }
+        #else
+            Log::print("Unknown integrator (known: LFRG, OML2, OML4)", Log::ERROR);
+            exit(1);
+        #endif
+    }
+
+    /**
+     * @brief Measure desired observables and record values.
+    */
     void record_observables() {
         #if MEASURE_DH
             *csv_dH << time << "," << dH << endl;
@@ -159,11 +261,11 @@ public:
             *csv_acc << time << "," << acc << endl;
         #endif
         #if MEASURE_PLAQUETTE
-            plaq = gauge->compute_gauge_action(-1, hop)/V;
+            plaq = gauge->compute_gauge_action(-1)/V;
             *csv_plaq << time << "," << plaq << endl;
         #endif
         #if MEASURE_QTOP
-            qtop = gauge->compute_topological_charge(hop);
+            qtop = gauge->compute_topological_charge();
             *csv_qtop << time << "," << qtop << endl;
         #endif
         #if MEASURE_PSCC
@@ -178,6 +280,10 @@ public:
         #endif
     }
 
+    /**
+     * @brief Save measured observables to results folder.
+     * @param path Path to results directory.
+    */
     void save_results(const string& path) {
         ofstream output;
         #if MEASURE_DH
@@ -206,6 +312,5 @@ public:
             output.close();
         #endif
     }
-
 
 };
