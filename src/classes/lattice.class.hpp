@@ -10,6 +10,7 @@
 #include "field.class.hpp"
 #include "force.class.hpp"
 #include "momentum.class.hpp"
+#include "hopping.class.hpp"
 #include "gauge.class.hpp"
 #include "fermion.class.hpp"
 
@@ -71,11 +72,18 @@ public:
 
         Log::print("Building lattice of size "+to_string(T_)+" by "+to_string(L_)+" with spacing "+to_string(a), Log::VERBOSE);
 
+        HoppingField *hop = new HoppingField(T_, L_);
+        hop->initialize();
+        Log::print("Successfully initialized hopping field", Log::VERBOSE);
+
         gauge = new GaugeField(T_, L_);
         gauge->initialize_cold();
         gauge_old = new GaugeField(T_, L_);
         gauge_old->initialize_cold();
         Log::print("Successfully initialized gauge fields", Log::VERBOSE);
+        
+        gauge->assign_hopping_field(hop);
+        gauge_old->assign_hopping_field(hop);
 
         pfermion = new PseudoFermionField*[N_PF];
         for (int i=0; i<N_PF; i++){
@@ -159,7 +167,6 @@ public:
                 gauge->assign_link(gauge_old); 
             }
         }
-
     }
 
     /**

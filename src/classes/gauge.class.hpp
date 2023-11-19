@@ -7,8 +7,6 @@
  * @date    November 2023
 */
 
-#include "hopping.class.hpp"
-
 class GaugeField : public Field<double*> {
 
 public:
@@ -24,9 +22,6 @@ public:
         for (int i=0; i<V; i++){
             values[i] = new double[D];
         }
-        hop = new HoppingField(T_, L_);
-        hop->initialize();
-        Log::print("Successfully initialized hopping field", Log::VERBOSE);
     }
 
     /**
@@ -36,6 +31,15 @@ public:
         for (int i=0; i<V; i++){
             delete values[i];
         }
+    }
+
+    /**
+     * @brief Assign hopping field.
+     * @param hopping Pointer to hopping field.
+    */
+    void assign_hopping_field(HoppingField *hopping){
+        hop = hopping;
+        Log::print("Successfully assigned hopping field", Log::VERBOSE);
     }
 
     /**
