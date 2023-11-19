@@ -103,9 +103,9 @@ public:
     }
 
     /**
-     * @brief Measure Wilson lattice action
-     * @param beta Lattice coupling
-     * @return Action
+     * @brief Measure Wilson lattice action for current gauge field configuration.
+     * @param beta Lattice coupling constant.
+     * @return Contribution of gauge field to the total action.
     */
     double compute_gauge_action(double beta){
         int imu, inu;
@@ -121,12 +121,14 @@ public:
     }
 
     /**
-     * @brief
+     * @brief Compute topological charge for current gauge field configuration.
+     * @return Topological charge.
     */
     double compute_topological_charge(){
         int imu, inu;
         double phi, offset;
         double qtop = 0.0;
+        double qtop_factor = 8.0*atan(1.0);
         for (int i=0; i<V; i++){
             imu = (*hop)[i][0];
             inu = (*hop)[i][1];
@@ -137,6 +139,11 @@ public:
         return qtop/qtop_factor;
     }
 
+    /**
+     * @brief Evolve gauge field according to given momentum.
+     * @param eps Step size.
+     * @param mom Pointer to momentum field.
+    */
     void move_gauge(double eps, MomentumField *mom){
         for (int i=0; i<V; i++){
             for (int mu=0; mu<D; mu++){
@@ -145,6 +152,12 @@ public:
         }
     }
 
+    /**
+     * @brief Compute gauge contribution to HMC force field.
+     * @param force Pointer to ForceField instance where values should be written.
+     * @param beta Lattice coupling constant.
+     * @param a Constant @todo lattice spacing?
+    */
     void compute_force_to(ForceField *force, double beta, double a){
         int ix1, ix2;
         for (int i=0; i<V; i++){
@@ -163,9 +176,5 @@ public:
             }
         }
     }
-    
-private:
-
-    double qtop_factor = 8.0*atan(1.0);
 
 };
