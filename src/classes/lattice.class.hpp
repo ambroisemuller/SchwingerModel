@@ -33,7 +33,7 @@ private:
     double  eps = TRAJ_LENGTH/N_STEP;   // Molecular dynamics step size  
 
     GaugeField      *gauge_old;         // Gauge field from previous step
-    MomentumField   *mom;               // Momentum field
+    MomentumField   *momentum;          // Momentum field
     ForceField      *force;             // Force field
     ForceField      *force_tmp;         // Auxilliary force field (workspace)
 
@@ -83,6 +83,13 @@ public:
         }
         Log::print("Successfully initialized pseudofermion fields", Log::VERBOSE);
 
+        momentum = new MomentumField(T, L);
+        Log::print("Successfully initialized momentum field", Log::VERBOSE);
+
+        force = new ForceField(T, L);
+        force_tmp = new ForceField(T, L);
+        Log::print("Successfully initialized force fields", Log::VERBOSE);
+
         #if MEASURE_PSCC
             pscc = new double[V];
         #endif
@@ -95,6 +102,13 @@ public:
     ~Lattice(){
         delete gauge;
         delete gauge_old;
+        for (int i=0; i<N_PF; i++){
+            delete pfermion[i];
+        }
+        delete[] pfermion;
+        delete momentum;
+        delete force;
+        delete force_tmp;
     }
 
     /**
@@ -104,12 +118,6 @@ public:
         
         time = 0;
         auto start = chrono::high_resolution_clock::now();
-
-        mom = new MomentumField(T, L);
-        Log::print("Successfully initialized momentum field", Log::VERBOSE);
-        force = new ForceField(T, L);
-        force_tmp = new ForceField(T, L);
-        Log::print("Successfully initialized force fields", Log::VERBOSE);
 
         Log::progressBar(0);
         for (int itraj=0; itraj<N_TRAJ; itraj++) {
@@ -155,17 +163,21 @@ public:
     }
 
     /**
-     * @brief Initialize momentum field and compute initial energy.
-     * @return Energy before MD trajectory.
+     * @brief Initialize all HMC and compute initial Hamiltonian.
+     * @return Hamiltonian value before MD trajectory.
     */
     double start_hmc(){
         double H = 0.0;
-        H += mom->initialize_momentum();
+        H += momentum->initialize_momentum();
         H += fermion_heat();
         H += gauge->compute_gauge_action(BETA);
         return H;
     }
 
+    /**
+     * @brief Calls the heatbath for the various pseudofermion fields, accumulating the actions.
+     * @return Pseudofermion contribution to the action.
+    */
     double fermion_heat(){
         double action = 0.0;
         if (N_PF > 0){
@@ -177,8 +189,12 @@ public:
         return action;
     }
 
+    /**
+     * @brief Compute Hamiltonian of HMC evolution, adding various action terms.
+     * @return Hamiltonian after MD trajectory.
+    */
     double hamiltonian(){
-        double action = mom->compute_momentum_action();
+        double action = momentum->compute_momentum_action();
         if (N_PF > 0){   
             for (int i=0; i<N_PF-1; i++){
                 action += pfermion[i]->compute_fermion_action2(KAPPA, mu_list[i], mu_list[i+1], RES_ACT);
@@ -189,6 +205,10 @@ public:
         return action;
     }
 
+    /**
+     * @brief Compute forces and update momenta.
+     * @param eps_ Step size.
+    */
     void move_momentum(double eps_){
         force->set_zero();
         if (N_PF > 0){
@@ -203,27 +223,27 @@ public:
         *force += *force_tmp;
         for (int i=0; i<V; i++){
             for (int nu=0; nu<D; nu++){
-                mom->values[i][nu] -= eps_*force->values[i][nu];
+                momentum->values[i][nu] -= eps_*force->values[i][nu];
             }
         }
     }
 
     /**
-     * @brief Perform MD evolution of momentum and gauge fields.
+     * @brief Integration scheme for MD evolution of momentum and gauge fields.
     */
     void integrate(){
         #if INT == LFRG
             for (int i=0; i<N_STEP; i++){
                 move_momentum(0.5*eps);
-                gauge->move_gauge(eps, mom);
+                gauge->move_gauge(eps, momentum);
                 move_momentum(0.5*eps);
             }
         #elif INT == OMF2
             for (int i=0; i<N_STEP; i++){
                 move_momentum(LAMBDA*eps);
-                gauge->move_gauge(0.5*eps, mom);
+                gauge->move_gauge(0.5*eps, momentum);
                 move_momentum((1.0-2.0*LAMBDA)*eps);
-                gauge->move_gauge(0.5*eps, mom);
+                gauge->move_gauge(0.5*eps, momentum);
                 move_momentum(LAMBDA*eps);
             }
         #elif INT == OMF4
@@ -233,15 +253,15 @@ public:
                     r4=-0.03230286765269967;
             for (int i=0; i<N_STEP; i++){
                 move_momentum(r1*eps);
-                gauge->move_gauge(r2*eps, mom);
+                gauge->move_gauge(r2*eps, momentum);
                 move_mom(r3*eps);
-                gauge->move_gauge(r4*eps, mom);
+                gauge->move_gauge(r4*eps, momentum);
                 move_mom((0.5-r1-r3)*eps);
-                gauge->move_gauge((1-2*(r2+r4))*eps, mom);
+                gauge->move_gauge((1-2*(r2+r4))*eps, momentum);
                 move_mom((0.5-r1-r3)*eps);
-                gauge->move_gauge(r4*eps, mom);
+                gauge->move_gauge(r4*eps, momentum);
                 move_mom(r3*eps);
-                gauge->move_gauge(r2*eps, mom);
+                gauge->move_gauge(r2*eps, momentum);
                 move_mom(r1*eps);
             }
         #else
