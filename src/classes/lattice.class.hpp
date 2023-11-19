@@ -87,9 +87,13 @@ public:
 
         pfermion = new PseudoFermionField*[N_PF];
         for (int i=0; i<N_PF; i++){
-            pfermion[i] = new PseudoFermionField(T_, L_);
+            pfermion[i] = new PseudoFermionField(T_, L_, true);
         }
         Log::print("Successfully initialized pseudofermion fields", Log::VERBOSE);
+
+        for (int i=0; i<N_PF; i++){
+            pfermion[i]->assign_hopping_field(hop);
+        }
 
         momentum = new MomentumField(T, L);
         Log::print("Successfully initialized momentum field", Log::VERBOSE);
@@ -98,6 +102,7 @@ public:
         force_tmp = new ForceField(T, L);
         Log::print("Successfully initialized force fields", Log::VERBOSE);
 
+        // initialize data structures depending on lattice size for observables
         #if MEASURE_PSCC
             pscc = new double[V];
         #endif
