@@ -32,6 +32,7 @@ using namespace std;
 #include "configs/integrator.config.h"
 #include "configs/misc.config.h"
 #include "configs/observables.config.h"
+#include "structs/spinor.struct.hpp"
 #include "utils/log.utils.hpp"
 #include "utils/random.utils.hpp"
 #include "classes/lattice.class.hpp"

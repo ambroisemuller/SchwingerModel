@@ -87,12 +87,13 @@ public:
 
         pfermion = new PseudoFermionField*[N_PF];
         for (int i=0; i<N_PF; i++){
-            pfermion[i] = new PseudoFermionField(T_, L_, true);
+            pfermion[i] = new PseudoFermionField(T_, L_, true, true);
         }
         Log::print("Successfully initialized pseudofermion fields", Log::VERBOSE);
 
         for (int i=0; i<N_PF; i++){
             pfermion[i]->assign_hopping_field(hop);
+            pfermion[i]->assign_gauge_field(gauge);
         }
 
         momentum = new MomentumField(T, L);

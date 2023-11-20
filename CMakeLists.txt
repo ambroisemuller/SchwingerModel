@@ -11,7 +11,7 @@ project(SchwingerModel)
 ########################
 message("Add main executable")
 add_executable(main main.cpp)
-add_compile_options(-Wall -Wextra)
+# add_compile_options(-Wall -Wextra)
 
 ########################
 # TESTS

@@ -270,6 +270,11 @@ namespace Random {
 
     double gauss_normalization = 8.0*atan(1.0);
 
+    /**
+     * @brief Initialize array to normally distributed random real values.
+     * @param n Length of doubles array.
+     * @param rand Array of doubles to initialize.
+    */
     void gauss_rand(int n, double *rand){
         int i = 0;
         double tmp[2], r, phi;
@@ -283,6 +288,20 @@ namespace Random {
                 rand[i] = r * sin(phi);
             }; 
             i++;
+        }
+    }
+
+    /**
+     * @brief Initialize array to normally distributed random spinor values.
+     * @param field_volume Length of spinors array.
+     * @param field_values Array of pointers to spinor values to initialize.
+    */
+    void gauss_spinor_field(int field_volume, Spinor **field_values){
+        double rv[4];
+        for (int i=0; i<field_volume; i++){
+            gauss_rand(4, rv);
+            field_values[i]->s[0] = complex<double>(rv[0], rv[1]);
+            field_values[i]->s[1] = complex<double>(rv[2], rv[3]);
         }
     }
 

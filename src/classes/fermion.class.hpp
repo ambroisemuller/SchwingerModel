@@ -7,16 +7,20 @@
  * @date    November 2023
 */
 
-#include "../structs/spinor.struct.hpp"
-
 class PseudoFermionField : public Field<Spinor*> {
 
-public:
+private:
 
-    bool need_workspace;            // true for physical fields, false for workspace fields.
-    PseudoFermionField *v1, *v2;    // workspace fields
+    bool need_workspace;            // true for physical fields, false for workspace fields
+    PseudoFermionField *v1, *v2;    // general workspace fields
+
+    bool need_cg_workspace;
+    PseudoFermionField *cg_work, *cg_p, *cg_res, *cg_ap;    // CG workspace
 
     HoppingField    *hop;           // Hopping field
+    GaugeField      *gauge;         // Gauge field
+
+public:
 
     /**
      * @brief Constructor for PseudoFermionField.
@@ -24,13 +28,16 @@ public:
      * @param L_ Spatial extent of lattice. 
      * @param need_workspace_ true for physical (HMC) fields, false for workspace fields.
     */
-    PseudoFermionField(int T_, int L_, bool need_workspace_) : 
+    PseudoFermionField(int T_, int L_, bool need_workspace_, bool need_cg_workspace_) : 
     need_workspace(need_workspace_), Field(T_, L_) {
         for (int i=0; i<V; i++){
             values[i] = new Spinor();
         }
         if (need_workspace_){
             allocate_workspace();
+        }
+        if (need_cg_workspace_){
+            allocate_cg_workspace();
         }
     }
 
@@ -44,12 +51,28 @@ public:
                 delete v1->values[i];
                 delete v2->values[i];
             }
+            if (need_cg_workspace){
+                delete cg_work->values[i];
+                delete cg_p->values[i];
+                delete cg_res->values[i];
+                delete cg_ap->values[i];
+            }
         }
         if (need_workspace){
             delete[] v1->values;
-            delete v1;
             delete[] v2->values;
+            delete v1;
             delete v2;
+        }
+        if (need_cg_workspace){
+            delete[] cg_work->values;
+            delete[] cg_p->values;
+            delete[] cg_res->values;
+            delete[] cg_ap->values;
+            delete cg_work;
+            delete cg_p;
+            delete cg_res;
+            delete cg_ap;
         }
     }
 
@@ -57,11 +80,24 @@ public:
      * @brief Allocate memory for auxilliary field instances used in computations.
     */
     void allocate_workspace(){
-        v1 = new PseudoFermionField(T, L, false);
-        v2 = new PseudoFermionField(T, L, false);
+        v1 = new PseudoFermionField(T, L, false, true);
+        v2 = new PseudoFermionField(T, L, false, true);
         for (int i=0; i<V; i++){
             v1->values[i] = new Spinor();
             v2->values[i] = new Spinor();
+        }
+    }
+
+    void allocate_cg_workspace(){
+        cg_work = new PseudoFermionField(T, L, false, false);
+        cg_p    = new PseudoFermionField(T, L, false, false);
+        cg_res  = new PseudoFermionField(T, L, false, false);
+        cg_ap   = new PseudoFermionField(T, L, false, false);
+        for (int i=0; i<V; i++){
+            cg_work->values[i] = new Spinor();
+            cg_p->values[i]    = new Spinor();
+            cg_res->values[i]  = new Spinor();
+            cg_ap->values[i]   = new Spinor();
         }
     }
 
@@ -71,42 +107,163 @@ public:
     */
     void assign_hopping_field(HoppingField *hopping){
         hop = hopping;
+        if (need_workspace){
+            v1->hop = hopping;
+            v2->hop = hopping;
+        }
+        if (need_cg_workspace){
+            cg_work->hop = hopping;
+            cg_p->hop    = hopping;
+            cg_res->hop  = hopping;
+            cg_ap->hop   = hopping;
+        }
         Log::print("Successfully assigned hopping field", Log::VERBOSE);
     }
 
-    double compute_fermion_action1(double kappa, double mu, double res){
-        return 0;
+    /**
+     * @brief Assign gauge field.
+     * @param gauge_ Pointer to gauge field.
+    */
+    void assign_gauge_field(GaugeField *gauge_){
+        gauge = gauge_;
+        if (need_workspace){
+            v1->gauge = gauge_;
+            v2->gauge = gauge_;
+        }
+        if (need_cg_workspace){
+            cg_work->gauge = gauge_;
+            cg_p->gauge    = gauge_;
+            cg_res->gauge  = gauge_;
+            cg_ap->gauge   = gauge_;
+        }
+        Log::print("Successfully assigned gauge field", Log::VERBOSE);
+    }
+
+    void set_to_zero(){
+        for (int i=0; i<V; i++){
+            values[i]->s[0] = 0;
+            values[i]->s[1] = 0;
+        }
+    }
+
+    void set_to(PseudoFermionField *source){
+        for (int i=0; i<V; i++){
+            values[i]->s[0] = source->values[i]->s[0];
+            values[i]->s[1] = source->values[i]->s[1];
+        }
+    }
+
+    void apply_gamma5(){
+        for (int i=0; i<V; i++){
+            values[i]->s[1] = -values[i]->s[1];
+        }
+    }
+
+    void add_other_times_factor(PseudoFermionField *other, complex<double> factor){
+        for (int i=0; i<V; i++){
+            values[i]->s[0] += factor * other->values[i]->s[0];
+            values[i]->s[1] += factor * other->values[i]->s[1];
+        }
+    }
+
+    /**
+     * @brief Computes the scalar product with another spinor field.
+     * @param other Another spinor/pseudofermion field.
+     * @return Scalar product = sum_{sites i} |conj(this_i) * other_i|^2.
+    */
+    complex<double> scalar_prod_with(PseudoFermionField *other){
+        complex<double> res = 0.0;
+        for (int i=0; i<V; i++){
+            res += conj(values[i]->s[0])*other->values[i]->s[0];
+            res += conj(values[i]->s[1])*other->values[i]->s[1];
+        }
+        return res;
     }
 
 
+    double compute_fermion_action1(double kappa, double mu, double res){
+        v1->set_to_CG_solution(this, kappa, mu, res, N_MAX);
+        return scalar_prod_with(v1).real();
+    }
+
     double compute_fermion_action2(double kappa, double mu1, double mu2, double res){
-        return 0;
+        return (mu2*mu2 - mu1*mu1)*compute_fermion_action1(kappa, mu1, res);
     }
 
     double setpf1(double kappa, double mu){
-        return 0;
+        Random::gauss_spinor_field(V, v1->values);
+        set_to_dirac_of(v1, kappa, mu);
+        apply_gamma5();
+        return v1->scalar_prod_with(v1).real();
     }
 
     double setpf2(double kappa, double mu1, double mu2, double res){
-        return 0;
+        Random::gauss_spinor_field(V, values);
+        v1->set_to_CG_solution(this, kappa, mu2, res, N_MAX);
+        v2->set_to(v1);
+        v1->set_to_dirac_of(v2, kappa, -mu2);
+        v1->apply_gamma5();
+        add_other_times_factor(v1, COMPLEX_I*(mu1-mu2));
+        return (mu2*mu2 - mu1*mu1) * v1->scalar_prod_with(v1).real();
     }
 
     void compute_force1_to(ForceField *force, double kappa, double mu, double a, double res){
+        v1->set_to_CG_solution(this, kappa, mu, res, N_MAX);
+        v2->set_to_dirac_of(v1, kappa, mu);
+        v2->apply_gamma5();
+        for (int i=0; i<V; i++){
+            for (int nu=0; nu<D; nu++){
+                complex<double> c = -a * kappa * exp(- COMPLEX_I * gauge->values[i][nu]);
+                Spinor tmp;
+                mul_1_plus_gamma(nu, v2->values[hop->values[i][nu]], &tmp);
+                force->values[i][nu] = 2 * ((conj(v1->values[i]->s[0])*c*tmp.s[0]).imag() - (conj(v1->values[i]->s[1])*c*tmp.s[1]).imag());
+                mul_1_plus_gamma(nu, v1->values[hop->values[i][nu]], &tmp);
+                force->values[i][nu] = 2 * ((conj(v2->values[i]->s[0])*c*tmp.s[0]).imag() - (conj(v2->values[i]->s[1])*c*tmp.s[1]).imag());
+            }
+        }
 
     }
 
     void compute_force2_to(ForceField *force, double kappa, double mu1, double mu2, double a, double res){
-
+        compute_force1_to(force, kappa, mu1, a*(mu2*mu2 - mu1*mu1), res);
     }
 
     /**
      * @brief Conjugate gradient algorithm to find solution to (D^dag*D + mu^2) (*this) = (*other).
      *        Solution is written to values of current instance.
      * @param other Pointer to PseudoFermionField instance on RHS of equation to solve.
-     * @param kappa 
+     * @param kappa Mass parameter.
+     * @param mu    Twisted mass.
+     * @param eps   Solver tolerance.
+     * @param nmax  Maximum number of solver iterations.
     */
-    void set_to_CG_solution(PseudoFermionField *other, double kappa, double mu){
+    void set_to_CG_solution(PseudoFermionField *other, double kappa, double mu, double eps, int nmax){
 
+    }
+
+    /**
+     * @brief Set values of current field to D*other, where D is the Dirac operator.
+     * @param other Source PseudoFermionField instance.
+     * @param kappa Mass parameter.
+     * @param mu    Twisted mass.
+    */
+    void set_to_dirac_of(PseudoFermionField *other, double kappa, double mu){
+        for (int i=0; i<V; i++){
+            values[i]->s[0] = complex<double>(1, mu) * other->values[i]->s[0];
+            values[i]->s[1] = complex<double>(1, -mu) * other->values[i]->s[1];
+            complex<double> c;
+            Spinor tmp;
+            for (int nu=0; nu<D; nu++){
+                if (nu < D){    // forward hopping
+                    c = -kappa * exp(-COMPLEX_I * gauge->values[i][nu]);
+                } else {        // backward hopping
+                    c = -kappa * exp(COMPLEX_I * gauge->values[hop->values[i][nu]][nu-D]);
+                }
+                mul_1_plus_gamma(nu, other->values[hop->values[i][nu]], &tmp);
+                values[i]->s[0] += c * tmp.s[0];
+                values[i]->s[1] += c * tmp.s[1];
+            }
+        }
     }
 
 };
