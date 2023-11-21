@@ -29,7 +29,7 @@ public:
      * @param need_workspace_ true for physical (HMC) fields, false for workspace fields.
     */
     PseudoFermionField(int T_, int L_, bool need_workspace_, bool need_cg_workspace_) : 
-    need_workspace(need_workspace_), Field(T_, L_) {
+    need_workspace(need_workspace_), need_cg_workspace(need_cg_workspace_), Field(T_, L_) {
         for (int i=0; i<V; i++){
             values[i] = new Spinor();
         }
@@ -108,8 +108,10 @@ public:
     void assign_hopping_field(HoppingField *hopping){
         hop = hopping;
         if (need_workspace){
-            v1->hop = hopping;
-            v2->hop = hopping;
+            // v1->hop = hopping;
+            v1->assign_hopping_field(hopping);
+            // v2->hop = hopping;
+            v2->assign_hopping_field(hopping);
         }
         if (need_cg_workspace){
             cg_work->hop = hopping;
@@ -127,8 +129,10 @@ public:
     void assign_gauge_field(GaugeField *gauge_){
         gauge = gauge_;
         if (need_workspace){
-            v1->gauge = gauge_;
-            v2->gauge = gauge_;
+            // v1->gauge = gauge_;
+            v1->assign_gauge_field(gauge_);
+            // v2->gauge = gauge_;
+            v2->assign_gauge_field(gauge_);
         }
         if (need_cg_workspace){
             cg_work->gauge = gauge_;
@@ -159,10 +163,17 @@ public:
         }
     }
 
-    void add_other_times_factor(PseudoFermionField *other, complex<double> factor){
+    void add_z_times_pf(complex<double> z, PseudoFermionField *pf){
         for (int i=0; i<V; i++){
-            values[i]->s[0] += factor * other->values[i]->s[0];
-            values[i]->s[1] += factor * other->values[i]->s[1];
+            values[i]->s[0] += z * pf->values[i]->s[0];
+            values[i]->s[1] += z * pf->values[i]->s[1];
+        }
+    }
+
+    void set_to_pf1_plus_z_times_pf2(PseudoFermionField *pf1, complex<double> z, PseudoFermionField *pf2){
+        for (int i=0; i<V; i++){
+            values[i]->s[0] = pf1->values[i]->s[0] + z * pf2->values[i]->s[0];
+            values[i]->s[1] = pf1->values[i]->s[1] + z * pf2->values[i]->s[1];
         }
     }
 
@@ -203,7 +214,7 @@ public:
         v2->set_to(v1);
         v1->set_to_dirac_of(v2, kappa, -mu2);
         v1->apply_gamma5();
-        add_other_times_factor(v1, COMPLEX_I*(mu1-mu2));
+        add_z_times_pf(COMPLEX_I*(mu1-mu2), v1);
         return (mu2*mu2 - mu1*mu1) * v1->scalar_prod_with(v1).real();
     }
 
@@ -238,7 +249,31 @@ public:
      * @param nmax  Maximum number of solver iterations.
     */
     void set_to_CG_solution(PseudoFermionField *other, double kappa, double mu, double eps, int nmax){
-
+        set_to_zero();
+        cg_res->set_to(other);
+        cg_p->set_to(cg_res);
+        double rsold = cg_res->scalar_prod_with(cg_res).real();
+        for (int i=0; i<nmax; i++){
+            cg_work->set_to_dirac_of(cg_p, kappa, mu);
+            cg_work->apply_gamma5();
+            cg_ap->set_to_dirac_of(cg_work, kappa, -mu);
+            cg_ap->apply_gamma5();
+            complex<double> c = cg_p->scalar_prod_with(cg_ap);
+            double alpha = rsold/c.real();
+            add_z_times_pf(alpha, cg_p);
+            cg_res->add_z_times_pf(-alpha, cg_ap);
+            double rsnew = cg_res->scalar_prod_with(cg_res).real();
+            if (sqrt(rsnew) < eps){
+                break;
+            }
+            cg_p->set_to_pf1_plus_z_times_pf2(cg_res, rsnew/rsold, cg_p);
+            rsold = rsnew;
+            if (i == nmax-1){
+                Log::print("Error: CG did not converge", Log::ERROR);
+                break; // @todo remove
+                exit(1);
+            }
+        }
     }
 
     /**
