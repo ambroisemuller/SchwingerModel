@@ -28,21 +28,21 @@ public:
 
     double mu_list[N_PF] = MU_LIST;     // Hasenbusch masses
 
+    MomentumField   *momentum;          // Momentum field
 private:
 
-    double  time;                       // Simulation time
-    double  eps = TRAJ_LENGTH/N_STEP;   // Molecular dynamics step size  
+    double  time;                                       // Simulation time
+    double  eps = double(TRAJ_LENGTH)/double(N_STEP);   // Molecular dynamics step size  
 
     GaugeField      *gauge_old;         // Gauge field from previous step
-    MomentumField   *momentum;          // Momentum field
     ForceField      *force;             // Force field
     ForceField      *force_tmp;         // Auxilliary force field (workspace)
 
-    double dH;                          // Change in energy over trajectory
-    double acc;                         // Metropolis acceptance flag
+    double  dH;                         // Change in energy over trajectory
+    double  acc;                        // Metropolis acceptance flag
 
     #if MEASURE_DH
-        stringstream* csv_dH = new stringstream;
+        stringstream* csv_dH = new stringstream; 
     #endif
     #if MEASURE_ACC
         stringstream* csv_acc = new stringstream;
@@ -104,6 +104,18 @@ public:
         Log::print("Successfully initialized force fields", Log::VERBOSE);
 
         // initialize data structures depending on lattice size for observables
+        #if MEASURE_DH
+            *csv_dH << "t,dH" << endl;
+        #endif
+        #if MEASURE_ACC
+            *csv_acc << "t,acc" << endl;
+        #endif
+        #if MEASURE_PLAQUETTE
+            *csv_plaq << "t,plaq" << endl;
+        #endif
+        #if MEASURE_QTOP
+            *csv_qtop << "t,qtop" << endl;
+        #endif
         #if MEASURE_PSCC
             pscc = new double[V];
         #endif
@@ -153,11 +165,13 @@ public:
      * @brief Simulate a single HMC trajectory.
     */
     void single_trajectory() {
-        gauge_old->assign_link(gauge);
+        gauge_old->set_to(gauge);
 
         double H1 = start_hmc();
         integrate();
         double H2 = hamiltonian();
+        cout << endl;
+        cout << "H1 = " << H1 << ", H2 = " << H2 << endl;
 
         dH = H2 - H1;
         acc = 0;
@@ -170,7 +184,7 @@ public:
             if (exp(-dH) > r) { 
                 acc=1; 
             } else { 
-                gauge->assign_link(gauge_old); 
+                gauge->set_to(gauge_old); 
             }
         }
     }
@@ -227,16 +241,16 @@ public:
         if (N_PF > 0){
             for (int i=0; i<N_PF-1; i++){
                 pfermion[i]->compute_force2_to(force_tmp, KAPPA, mu_list[i], mu_list[i+1], 1.0, RES_FRC);
-                *force += *force_tmp;
+                (*force) += (*force_tmp);
             }
             pfermion[N_PF-1]->compute_force1_to(force_tmp, KAPPA, mu_list[N_PF-1], 1.0, RES_FRC);
-            *force += *force_tmp;
+            (*force) += (*force_tmp);
         }
         gauge->compute_force_to(force_tmp, BETA, 1.0);
-        *force += *force_tmp;
+        (*force) += (*force_tmp);
         for (int i=0; i<V; i++){
             for (int nu=0; nu<D; nu++){
-                momentum->values[i][nu] -= eps_*force->values[i][nu];
+                momentum->values[i][nu] -= eps_*(force->values[i][nu]);
             }
         }
     }

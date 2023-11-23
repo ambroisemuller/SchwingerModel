@@ -1,6 +1,6 @@
 #define     RES_ACT         1.e-10                          // precision solver for action computation: accept/reject step
 #define     RES_FRC         1.e-8                           // precision solver for force computation
-#define     N_MAX           1e2                             // Maximum number of steps for CG solver
+#define     N_MAX           1e3                             // Maximum number of steps for CG solver
 
 #define     SEED            116                             // seed for random number generator
 

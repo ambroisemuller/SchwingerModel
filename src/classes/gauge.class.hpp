@@ -95,7 +95,7 @@ public:
      * @brief Assign the values of a source field to current gauge field.
      * @param source Pointer to source gauge field.
     */
-    void assign_link(GaugeField *source){
+    void set_to(GaugeField *source){
         for (int i=0; i<V; i++){
             values[i][0] = source->values[i][0];
             values[i][1] = source->values[i][1];
@@ -145,6 +145,8 @@ public:
      * @param mom Pointer to momentum field.
     */
     void move_gauge(double eps, MomentumField *mom){
+
+        
         for (int i=0; i<V; i++){
             for (int mu=0; mu<D; mu++){
                 values[i][mu] -= eps * mom->values[i][mu];

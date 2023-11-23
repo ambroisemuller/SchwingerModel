@@ -292,6 +292,27 @@ namespace Random {
     }
 
     /**
+     * @brief Initialize array to normally distributed random real values.
+     * @param n Length of doubles array.
+     * @param rand Array of pointers to doubles to initialize.
+    */
+    void gauss_rand(int n, double **rand){
+        int i = 0;
+        double tmp[2], r, phi;
+        while (i < n){
+            ranlxd(tmp, 2); // two random numbers, flat distribution in [0,1)
+            phi = tmp[0] * gauss_normalization; // compute polar coordinates: angle and radius
+            r = sqrt(-log(1.0-tmp[1])); // map second number [0,1) -> (0,1]
+            *(rand[i]) = r * cos(phi); 
+            i++;
+            if (i < n) {    // compute second only if requested
+                *(rand[i]) = r * sin(phi);
+            }; 
+            i++;
+        }
+    }
+
+    /**
      * @brief Initialize array to normally distributed random spinor values.
      * @param field_volume Length of spinors array.
      * @param field_values Array of pointers to spinor values to initialize.

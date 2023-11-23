@@ -35,4 +35,5 @@ using namespace std;
 #include "structs/spinor.struct.hpp"
 #include "utils/log.utils.hpp"
 #include "utils/random.utils.hpp"
+#include "utils/scripts.utils.hpp"
 #include "classes/lattice.class.hpp"

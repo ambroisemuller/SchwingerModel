@@ -17,10 +17,10 @@ private:
     bool need_cg_workspace;
     PseudoFermionField *cg_work, *cg_p, *cg_res, *cg_ap;    // CG workspace
 
+public:
+
     HoppingField    *hop;           // Hopping field
     GaugeField      *gauge;         // Gauge field
-
-public:
 
     /**
      * @brief Constructor for PseudoFermionField.
@@ -229,7 +229,7 @@ public:
                 mul_1_plus_gamma(nu, v2->values[hop->values[i][nu]], &tmp);
                 force->values[i][nu] = 2 * ((conj(v1->values[i]->s[0])*c*tmp.s[0]).imag() - (conj(v1->values[i]->s[1])*c*tmp.s[1]).imag());
                 mul_1_plus_gamma(nu, v1->values[hop->values[i][nu]], &tmp);
-                force->values[i][nu] = 2 * ((conj(v2->values[i]->s[0])*c*tmp.s[0]).imag() - (conj(v2->values[i]->s[1])*c*tmp.s[1]).imag());
+                force->values[i][nu] += 2 * ((conj(v2->values[i]->s[0])*c*tmp.s[0]).imag() - (conj(v2->values[i]->s[1])*c*tmp.s[1]).imag());
             }
         }
 
@@ -270,7 +270,6 @@ public:
             rsold = rsnew;
             if (i == nmax-1){
                 Log::print("Error: CG did not converge", Log::ERROR);
-                break; // @todo remove
                 exit(1);
             }
         }
@@ -288,7 +287,7 @@ public:
             values[i]->s[1] = complex<double>(1, -mu) * other->values[i]->s[1];
             complex<double> c;
             Spinor tmp;
-            for (int nu=0; nu<D; nu++){
+            for (int nu=0; nu<2*D; nu++){
                 if (nu < D){    // forward hopping
                     c = -kappa * exp(-COMPLEX_I * gauge->values[i][nu]);
                 } else {        // backward hopping
