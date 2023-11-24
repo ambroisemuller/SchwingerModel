@@ -96,10 +96,20 @@ public:
      * @param source Pointer to source gauge field.
     */
     void set_to(GaugeField *source){
-        for (int i=0; i<V; i++){
-            values[i][0] = source->values[i][0];
-            values[i][1] = source->values[i][1];
-        }
+        #if MULTI_TD
+            auto set_to_lambda = [this, source](int start, int end, int thread_id) {
+                for (int i = start; i < end; ++i) {
+                    values[i][0] = source->values[i][0];
+                    values[i][1] = source->values[i][1];
+                }
+            };
+            HPC::MultithreadedLoop(set_to_lambda, 0, V);
+        #else
+            for (int i=0; i<V; i++){
+                values[i][0] = source->values[i][0];
+                values[i][1] = source->values[i][1];
+            }
+        #endif
     }
 
     /**
@@ -108,16 +118,35 @@ public:
      * @return Contribution of gauge field to the total action.
     */
     double compute_gauge_action(double beta){
-        int imu, inu;
-        double phi;
-        double action = 0.0;
-        for (int i=0; i<V; i++){
-            imu = hop->values[i][0];
-            inu = hop->values[i][1];
-            phi = values[i][0] + values[imu][1] - values[inu][0] - values[i][1];
-            action += cos(phi);
-        }
-        return -beta * action;
+        #if MULTI_TD
+            std::vector<double> partial_actions(std::thread::hardware_concurrency(), 0.0);
+            auto action_lambda = [this, &partial_actions](int start, int end, int thread_id) {
+                double local_action = 0.0;
+                int imu, inu;
+                double phi;
+                for (int i = start; i < end; ++i) {
+                    imu = hop->values[i][0];
+                    inu = hop->values[i][1];
+                    phi = values[i][0] + values[imu][1] - values[inu][0] - values[i][1];
+                    local_action += cos(phi);
+                }
+                partial_actions[thread_id] = local_action;
+            };
+            HPC::MultithreadedLoop(action_lambda, 0, V);
+            double total_action = std::accumulate(partial_actions.begin(), partial_actions.end(), 0.0);
+            return -beta * total_action;
+        #else
+            int imu, inu;
+            double phi;
+            double action = 0.0;
+            for (int i=0; i<V; i++){
+                imu = hop->values[i][0];
+                inu = hop->values[i][1];
+                phi = values[i][0] + values[imu][1] - values[inu][0] - values[i][1];
+                action += cos(phi);
+            }
+            return -beta * action;
+        #endif
     }
 
     /**
@@ -125,18 +154,40 @@ public:
      * @return Topological charge.
     */
     double compute_topological_charge(){
-        int imu, inu;
-        double phi, offset;
-        double qtop = 0.0;
-        double qtop_factor = 8.0*atan(1.0);
-        for (int i=0; i<V; i++){
-            imu = (*hop)[i][0];
-            inu = (*hop)[i][1];
-            phi = values[i][0] + values[imu][1] - values[inu][0] - values[i][1];
-            offset = floor((phi+0.5*qtop_factor)/qtop_factor) * qtop_factor;
-            qtop += phi - offset;
-        }
-        return qtop/qtop_factor;
+        #if MULTI_TD
+            std::vector<double> partial_charges(std::thread::hardware_concurrency(), 0.0);
+            double qtop_factor = 8.0 * atan(1.0);
+            auto charge_lambda = [this, &partial_charges](int start, int end, int thread_id) {
+                double local_qtop = 0.0;
+                int imu, inu;
+                double phi, offset;
+                double qtop_factor = 8.0 * atan(1.0);
+                for (int i = start; i < end; ++i) {
+                    imu = (*hop)[i][0];
+                    inu = (*hop)[i][1];
+                    phi = values[i][0] + values[imu][1] - values[inu][0] - values[i][1];
+                    offset = floor((phi + 0.5 * qtop_factor) / qtop_factor) * qtop_factor;
+                    local_qtop += phi - offset;
+                }
+                partial_charges[thread_id] = local_qtop;
+            };
+            HPC::MultithreadedLoop(charge_lambda, 0, V);
+            double total_qtop = std::accumulate(partial_charges.begin(), partial_charges.end(), 0.0);
+            return total_qtop / qtop_factor;
+        #else
+            int imu, inu;
+            double phi, offset;
+            double qtop = 0.0;
+            double qtop_factor = 8.0*atan(1.0);
+            for (int i=0; i<V; i++){
+                imu = (*hop)[i][0];
+                inu = (*hop)[i][1];
+                phi = values[i][0] + values[imu][1] - values[inu][0] - values[i][1];
+                offset = floor((phi+0.5*qtop_factor)/qtop_factor) * qtop_factor;
+                qtop += phi - offset;
+            }
+            return qtop/qtop_factor;
+        #endif
     }
 
     /**
@@ -144,15 +195,25 @@ public:
      * @param eps Step size.
      * @param mom Pointer to momentum field.
     */
-    void move_gauge(double eps, MomentumField *mom){
-
-        
-        for (int i=0; i<V; i++){
-            for (int mu=0; mu<D; mu++){
-                values[i][mu] -= eps * mom->values[i][mu];
+    void move_gauge(double eps, MomentumField *mom) {
+        #if MULTI_TD
+            auto move_gauge_lambda = [this, eps, mom](int start, int end, int thread_id) {
+                for (int i = start; i < end; ++i) {
+                    for (int mu = 0; mu < D; ++mu) {
+                        values[i][mu] -= eps * mom->values[i][mu];
+                    }
+                }
+            };
+            HPC::MultithreadedLoop(move_gauge_lambda, 0, V);
+        #else 
+            for (int i=0; i<V; i++){
+                for (int mu=0; mu<D; mu++){
+                    values[i][mu] -= eps * mom->values[i][mu];
+                }
             }
-        }
+        #endif
     }
+
 
     /**
      * @brief Compute gauge contribution to HMC force field.
@@ -161,22 +222,44 @@ public:
      * @param a Constant @todo lattice spacing?
     */
     void compute_force_to(ForceField *force, double beta, double a){
-        int ix1, ix2;
-        for (int i=0; i<V; i++){
-            for (int mu=0; mu<D; mu++){
-                for (int nu=0; nu<D; nu++){
-                    if (mu == nu) {continue;}
-                    // forward
-                    ix1 = hop->values[i][mu];
-                    ix2 = hop->values[i][nu];
-                    force->values[i][mu] = -a * beta * sin(values[i][mu] + values[ix1][nu] - values[ix2][mu] - values[i][nu]);
-                    // backward
-                    ix1 = hop->values[i][D+nu];     
-                    ix2 = hop->values[ix1][mu];     // @todo this looks fishy (ix1->i, mu->D+mu ?)
-                    force->values[i][mu] += -a * beta * sin(values[i][mu] - values[ix2][nu] - values[ix1][mu] + values[ix1][nu]);
+        #if MULTI_TD
+            auto compute_force_lambda = [this, force, beta, a](int start, int end, int thread_id) {
+                int ix1, ix2;
+                for (int i = start; i < end; ++i) {
+                    for (int mu = 0; mu < D; mu++) {
+                        for (int nu = 0; nu < D; nu++) {
+                            if (mu == nu) continue;
+                            // forward
+                            ix1 = hop->values[i][mu];
+                            ix2 = hop->values[i][nu];
+                            force->values[i][mu] = -a * beta * sin(values[i][mu] + values[ix1][nu] - values[ix2][mu] - values[i][nu]);
+                            // backward
+                            ix1 = hop->values[i][D+nu];     
+                            ix2 = hop->values[ix1][mu];  
+                            force->values[i][mu] += -a * beta * sin(values[i][mu] - values[ix2][nu] - values[ix1][mu] + values[ix1][nu]);
+                        }
+                    }
+                }
+            };
+            HPC::MultithreadedLoop(compute_force_lambda, 0, V);
+        #else
+            int ix1, ix2;
+            for (int i=0; i<V; i++){
+                for (int mu=0; mu<D; mu++){
+                    for (int nu=0; nu<D; nu++){
+                        if (mu == nu) {continue;}
+                        // forward
+                        ix1 = hop->values[i][mu];
+                        ix2 = hop->values[i][nu];
+                        force->values[i][mu] = -a * beta * sin(values[i][mu] + values[ix1][nu] - values[ix2][mu] - values[i][nu]);
+                        // backward
+                        ix1 = hop->values[i][D+nu];     
+                        ix2 = hop->values[ix1][mu];     // @todo this looks fishy (ix1->i, mu->D+mu ?)
+                        force->values[i][mu] += -a * beta * sin(values[i][mu] - values[ix2][nu] - values[ix1][mu] + values[ix1][nu]);
+                    }
                 }
             }
-        }
+        #endif
     }
 
 };

@@ -144,37 +144,87 @@ public:
     }
 
     void set_to_zero(){
-        for (int i=0; i<V; i++){
-            values[i]->s[0] = 0;
-            values[i]->s[1] = 0;
-        }
+        #if MULTI_TD
+            auto lambda = [this](int start, int end, int thread_id) {
+                for (int i = start; i < end; ++i) {
+                    values[i]->s[0] = 0;
+                    values[i]->s[1] = 0;
+                }
+            };
+            HPC::MultithreadedLoop(lambda, 0, V);
+        #else
+            for (int i=0; i<V; i++){
+                values[i]->s[0] = 0;
+                values[i]->s[1] = 0;
+            }
+        #endif
     }
 
     void set_to(PseudoFermionField *source){
-        for (int i=0; i<V; i++){
-            values[i]->s[0] = source->values[i]->s[0];
-            values[i]->s[1] = source->values[i]->s[1];
-        }
+        #if MULTI_TD
+            auto lambda = [this, source](int start, int end, int thread_id) {
+                for (int i = start; i < end; ++i) {
+                    values[i]->s[0] = source->values[i]->s[0];
+                    values[i]->s[1] = source->values[i]->s[1];
+                }
+            };
+            HPC::MultithreadedLoop(lambda, 0, V);
+        #else
+            for (int i=0; i<V; i++){
+                values[i]->s[0] = source->values[i]->s[0];
+                values[i]->s[1] = source->values[i]->s[1];
+            }
+        #endif
     }
 
     void apply_gamma5(){
-        for (int i=0; i<V; i++){
-            values[i]->s[1] = -values[i]->s[1];
-        }
+        #if MULTI_TD
+            auto lambda = [this](int start, int end, int thread_id) {
+                for (int i = start; i < end; ++i) {
+                    values[i]->s[1] = -values[i]->s[1];
+                }
+            };
+            HPC::MultithreadedLoop(lambda, 0, V);
+        #else
+            for (int i=0; i<V; i++){
+                values[i]->s[1] = -values[i]->s[1];
+            }
+        #endif
     }
 
     void add_z_times_pf(complex<double> z, PseudoFermionField *pf){
-        for (int i=0; i<V; i++){
-            values[i]->s[0] += z * pf->values[i]->s[0];
-            values[i]->s[1] += z * pf->values[i]->s[1];
-        }
+        #if MULTI_TD
+            auto lambda = [this, z, pf](int start, int end, int thread_id) {
+                for (int i = start; i < end; ++i) {
+                    values[i]->s[0] += z * pf->values[i]->s[0];
+                    values[i]->s[1] += z * pf->values[i]->s[1];
+                }
+            };
+            HPC::MultithreadedLoop(lambda, 0, V);
+        #else
+            for (int i=0; i<V; i++){
+                values[i]->s[0] += z * pf->values[i]->s[0];
+                values[i]->s[1] += z * pf->values[i]->s[1];
+            }
+        #endif
     }
 
     void set_to_pf1_plus_z_times_pf2(PseudoFermionField *pf1, complex<double> z, PseudoFermionField *pf2){
-        for (int i=0; i<V; i++){
-            values[i]->s[0] = pf1->values[i]->s[0] + z * pf2->values[i]->s[0];
-            values[i]->s[1] = pf1->values[i]->s[1] + z * pf2->values[i]->s[1];
-        }
+        #if MULTI_TD
+            auto lambda = [this, pf1, z, pf2](int start, int end, int thread_id) {
+                for (int i = start; i < end; ++i) {
+                    values[i]->s[0] = pf1->values[i]->s[0] + z * pf2->values[i]->s[0];
+                    values[i]->s[1] = pf1->values[i]->s[1] + z * pf2->values[i]->s[1];
+                }
+            };
+
+            HPC::MultithreadedLoop(lambda, 0, V);
+        #else
+            for (int i=0; i<V; i++){
+                values[i]->s[0] = pf1->values[i]->s[0] + z * pf2->values[i]->s[0];
+                values[i]->s[1] = pf1->values[i]->s[1] + z * pf2->values[i]->s[1];
+            }
+        #endif
     }
 
     /**
@@ -183,12 +233,27 @@ public:
      * @return Scalar product = sum_{sites i} |conj(this_i) * other_i|^2.
     */
     complex<double> scalar_prod_with(PseudoFermionField *other){
-        complex<double> res = 0.0;
-        for (int i=0; i<V; i++){
-            res += conj(values[i]->s[0])*other->values[i]->s[0];
-            res += conj(values[i]->s[1])*other->values[i]->s[1];
-        }
-        return res;
+        #if MULTI_TD
+            std::vector<complex<double>> partial_sums(std::thread::hardware_concurrency(), 0.0);
+            auto scalar_prod_lambda = [this, other, &partial_sums](int start, int end, int thread_id) {
+                complex<double> local_sum = 0.0;
+                for (int i = start; i < end; ++i) {
+                    local_sum += conj(values[i]->s[0]) * other->values[i]->s[0];
+                    local_sum += conj(values[i]->s[1]) * other->values[i]->s[1];
+                }
+                partial_sums[thread_id] = local_sum;
+            };
+            HPC::MultithreadedLoop(scalar_prod_lambda, 0, V);
+            complex<double> res = std::accumulate(partial_sums.begin(), partial_sums.end(), complex<double>(0.0));
+            return res;
+        #else
+            complex<double> res = 0.0;
+            for (int i=0; i<V; i++){
+                res += conj(values[i]->s[0])*other->values[i]->s[0];
+                res += conj(values[i]->s[1])*other->values[i]->s[1];
+            }
+            return res;
+        #endif
     }
 
 
@@ -222,17 +287,35 @@ public:
         v1->set_to_CG_solution(this, kappa, mu, res, N_MAX);
         v2->set_to_dirac_of(v1, kappa, mu);
         v2->apply_gamma5();
-        for (int i=0; i<V; i++){
-            for (int nu=0; nu<D; nu++){
-                complex<double> c = -a * kappa * exp(- COMPLEX_I * gauge->values[i][nu]);
+        #if MULTI_TD
+            auto compute_force1_lambda = [this, force, kappa, mu, a](int start, int end, int thread_id) {
+                complex<double> c;
                 Spinor tmp;
-                mul_1_plus_gamma(nu, v2->values[hop->values[i][nu]], &tmp);
-                force->values[i][nu] = 2 * ((conj(v1->values[i]->s[0])*c*tmp.s[0]).imag() - (conj(v1->values[i]->s[1])*c*tmp.s[1]).imag());
-                mul_1_plus_gamma(nu, v1->values[hop->values[i][nu]], &tmp);
-                force->values[i][nu] += 2 * ((conj(v2->values[i]->s[0])*c*tmp.s[0]).imag() - (conj(v2->values[i]->s[1])*c*tmp.s[1]).imag());
-            }
-        }
+                for (int i = start; i < end; ++i) {
+                    for (int nu = 0; nu < D; nu++) {
+                        c = -a * kappa * exp(-COMPLEX_I * gauge->values[i][nu]);
 
+                        mul_1_plus_gamma(nu, v2->values[hop->values[i][nu]], &tmp);
+                        force->values[i][nu] = 2 * ((conj(v1->values[i]->s[0]) * c * tmp.s[0]).imag() - (conj(v1->values[i]->s[1]) * c * tmp.s[1]).imag());
+
+                        mul_1_plus_gamma(nu, v1->values[hop->values[i][nu]], &tmp);
+                        force->values[i][nu] += 2 * ((conj(v2->values[i]->s[0]) * c * tmp.s[0]).imag() - (conj(v2->values[i]->s[1]) * c * tmp.s[1]).imag());
+                    }
+                }
+            };
+            HPC::MultithreadedLoop(compute_force1_lambda, 0, V);
+        #else
+            for (int i=0; i<V; i++){
+                for (int nu=0; nu<D; nu++){
+                    complex<double> c = -a * kappa * exp(- COMPLEX_I * gauge->values[i][nu]);
+                    Spinor tmp;
+                    mul_1_plus_gamma(nu, v2->values[hop->values[i][nu]], &tmp);
+                    force->values[i][nu] = 2 * ((conj(v1->values[i]->s[0])*c*tmp.s[0]).imag() - (conj(v1->values[i]->s[1])*c*tmp.s[1]).imag());
+                    mul_1_plus_gamma(nu, v1->values[hop->values[i][nu]], &tmp);
+                    force->values[i][nu] += 2 * ((conj(v2->values[i]->s[0])*c*tmp.s[0]).imag() - (conj(v2->values[i]->s[1])*c*tmp.s[1]).imag());
+                }
+            }
+        #endif
     }
 
     void compute_force2_to(ForceField *force, double kappa, double mu1, double mu2, double a, double res){
@@ -282,22 +365,45 @@ public:
      * @param mu    Twisted mass.
     */
     void set_to_dirac_of(PseudoFermionField *other, double kappa, double mu){
-        for (int i=0; i<V; i++){
-            values[i]->s[0] = complex<double>(1, mu) * other->values[i]->s[0];
-            values[i]->s[1] = complex<double>(1, -mu) * other->values[i]->s[1];
-            complex<double> c;
-            Spinor tmp;
-            for (int nu=0; nu<2*D; nu++){
-                if (nu < D){    // forward hopping
-                    c = -kappa * exp(-COMPLEX_I * gauge->values[i][nu]);
-                } else {        // backward hopping
-                    c = -kappa * exp(COMPLEX_I * gauge->values[hop->values[i][nu]][nu-D]);
+        #if MULTI_TD
+            auto set_to_dirac_lambda = [this, other, kappa, mu](int start, int end, int thread_id) {
+                complex<double> c;
+                Spinor tmp;
+                for (int i = start; i < end; ++i) {
+                    values[i]->s[0] = complex<double>(1, mu) * other->values[i]->s[0];
+                    values[i]->s[1] = complex<double>(1, -mu) * other->values[i]->s[1];
+
+                    for (int nu = 0; nu < 2 * D; nu++) {
+                        if (nu < D) {    // forward hopping
+                            c = -kappa * exp(-COMPLEX_I * gauge->values[i][nu]);
+                        } else {        // backward hopping
+                            c = -kappa * exp(COMPLEX_I * gauge->values[hop->values[i][nu]][nu - D]);
+                        }
+                        mul_1_plus_gamma(nu, other->values[hop->values[i][nu]], &tmp);
+                        values[i]->s[0] += c * tmp.s[0];
+                        values[i]->s[1] += c * tmp.s[1];
+                    }
                 }
-                mul_1_plus_gamma(nu, other->values[hop->values[i][nu]], &tmp);
-                values[i]->s[0] += c * tmp.s[0];
-                values[i]->s[1] += c * tmp.s[1];
+            };
+            HPC::MultithreadedLoop(set_to_dirac_lambda, 0, V);
+        #else
+            for (int i=0; i<V; i++){
+                values[i]->s[0] = complex<double>(1, mu) * other->values[i]->s[0];
+                values[i]->s[1] = complex<double>(1, -mu) * other->values[i]->s[1];
+                complex<double> c;
+                Spinor tmp;
+                for (int nu=0; nu<2*D; nu++){
+                    if (nu < D){    // forward hopping
+                        c = -kappa * exp(-COMPLEX_I * gauge->values[i][nu]);
+                    } else {        // backward hopping
+                        c = -kappa * exp(COMPLEX_I * gauge->values[hop->values[i][nu]][nu-D]);
+                    }
+                    mul_1_plus_gamma(nu, other->values[hop->values[i][nu]], &tmp);
+                    values[i]->s[0] += c * tmp.s[0];
+                    values[i]->s[1] += c * tmp.s[1];
+                }
             }
-        }
+        #endif
     }
 
 };

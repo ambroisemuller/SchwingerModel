@@ -23,6 +23,10 @@
 #include <algorithm>
 #include <mutex>
 #include <complex>
+#include <thread>
+#include <numeric>
+#include <vector>
+#include <functional>
 
 using namespace std;
 
@@ -36,4 +40,5 @@ using namespace std;
 #include "utils/log.utils.hpp"
 #include "utils/random.utils.hpp"
 #include "utils/scripts.utils.hpp"
+#include "utils/hpc.utils.hpp"
 #include "classes/lattice.class.hpp"

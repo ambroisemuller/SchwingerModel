@@ -14,6 +14,12 @@
 #include "gauge.class.hpp"
 #include "fermion.class.hpp"
 
+enum class Integrator {
+    LFRG,
+    OMF2,
+    OMF4
+};
+
 class Lattice {
 
 public:
@@ -26,15 +32,14 @@ public:
     GaugeField          *gauge;         // Gauge field
     PseudoFermionField  **pfermion;     // Pseudofermion fields
 
-    double mu_list[N_PF] = MU_LIST;     // Hasenbusch masses
-
-    MomentumField   *momentum;          // Momentum field
 private:
 
     double  time;                                       // Simulation time
     double  eps = double(TRAJ_LENGTH)/double(N_STEP);   // Molecular dynamics step size  
+    double mu_list[N_PF] = MU_LIST;     // Hasenbusch masses
 
     GaugeField      *gauge_old;         // Gauge field from previous step
+    MomentumField   *momentum;          // Momentum field
     ForceField      *force;             // Force field
     ForceField      *force_tmp;         // Auxilliary force field (workspace)
 
@@ -59,6 +64,8 @@ private:
         double *pscc;
         stringstream* csv_pscc = new std::stringstream;
     #endif
+
+    Integrator integrator = Integrator::INTEGRATOR;
 
 public:
 
@@ -145,14 +152,15 @@ public:
         time = 0;
         auto start = chrono::high_resolution_clock::now();
 
-        Log::progressBar(0);
+        // Log::progressBar(0);
         for (int itraj=0; itraj<N_TRAJ; itraj++) {
+            cout << "\ntraj " << itraj;
             single_trajectory();
             time += TRAJ_LENGTH;
             record_observables();
-            Log::progressBar(itraj/double(N_TRAJ));
+            // Log::progressBar(itraj/double(N_TRAJ));
         }
-        Log::progressBar(1);
+        // Log::progressBar(1);
         Log::newLine();
 
         auto end = chrono::high_resolution_clock::now();
@@ -170,8 +178,7 @@ public:
         double H1 = start_hmc();
         integrate();
         double H2 = hamiltonian();
-        cout << endl;
-        cout << "H1 = " << H1 << ", H2 = " << H2 << endl;
+        cout << " : H1 = " << H1 << ", H2 = " << H2 << endl;
 
         dH = H2 - H1;
         acc = 0;
@@ -194,11 +201,11 @@ public:
      * @return Hamiltonian value before MD trajectory.
     */
     double start_hmc(){
-        double H = 0.0;
-        H += momentum->initialize_momentum();
-        H += fermion_heat();
-        H += gauge->compute_gauge_action(BETA);
-        return H;
+        double H_mom = momentum->initialize_momentum();
+        double H_fermion = fermion_heat();
+        double H_gauge = gauge->compute_gauge_action(BETA);
+        cout << "\nH_mom = " << H_mom << ", H_fermion = " << H_fermion << ", H_gauge = " << H_gauge << endl;
+        return H_mom + H_fermion + H_gauge;
     }
 
     /**
@@ -222,13 +229,20 @@ public:
     */
     double hamiltonian(){
         double action = momentum->compute_momentum_action();
+        cout << "mom_action = " << action;
         if (N_PF > 0){   
             for (int i=0; i<N_PF-1; i++){
-                action += pfermion[i]->compute_fermion_action2(KAPPA, mu_list[i], mu_list[i+1], RES_ACT);
+                double f_action = pfermion[i]->compute_fermion_action2(KAPPA, mu_list[i], mu_list[i+1], RES_ACT);
+                cout << ", fermion action " << i << " = " << f_action; 
+                action += f_action;
             }
-            action += pfermion[N_PF-1]->compute_fermion_action1(KAPPA, mu_list[N_PF-1], RES_ACT);
+            double f_action = pfermion[N_PF-1]->compute_fermion_action1(KAPPA, mu_list[N_PF-1], RES_ACT);
+            cout << ", fermion action " << N_PF-1 << " = " << f_action; 
+            action += f_action;
         }
-        action += gauge->compute_gauge_action(BETA);
+        double g_action = gauge->compute_gauge_action(BETA); 
+        cout << ", gauge action = " << g_action << endl;
+        action += g_action;   
         return action;
     }
 
@@ -259,13 +273,13 @@ public:
      * @brief Integration scheme for MD evolution of momentum and gauge fields.
     */
     void integrate(){
-        #if INT == LFRG
+        if (integrator == Integrator::LFRG) {
             for (int i=0; i<N_STEP; i++){
                 move_momentum(0.5*eps);
                 gauge->move_gauge(eps, momentum);
                 move_momentum(0.5*eps);
             }
-        #elif INT == OMF2
+        } else if (integrator == Integrator::OMF2) {
             for (int i=0; i<N_STEP; i++){
                 move_momentum(LAMBDA*eps);
                 gauge->move_gauge(0.5*eps, momentum);
@@ -273,7 +287,7 @@ public:
                 gauge->move_gauge(0.5*eps, momentum);
                 move_momentum(LAMBDA*eps);
             }
-        #elif INT == OMF4
+        } else if (integrator == Integrator::OMF4) {
             double  r1=0.08398315262876693,
                     r2=0.2539785108410595,
                     r3=0.6822365335719091,
@@ -281,20 +295,20 @@ public:
             for (int i=0; i<N_STEP; i++){
                 move_momentum(r1*eps);
                 gauge->move_gauge(r2*eps, momentum);
-                move_mom(r3*eps);
+                move_momentum(r3*eps);
                 gauge->move_gauge(r4*eps, momentum);
-                move_mom((0.5-r1-r3)*eps);
+                move_momentum((0.5-r1-r3)*eps);
                 gauge->move_gauge((1-2*(r2+r4))*eps, momentum);
-                move_mom((0.5-r1-r3)*eps);
+                move_momentum((0.5-r1-r3)*eps);
                 gauge->move_gauge(r4*eps, momentum);
-                move_mom(r3*eps);
+                move_momentum(r3*eps);
                 gauge->move_gauge(r2*eps, momentum);
-                move_mom(r1*eps);
+                move_momentum(r1*eps);
             }
-        #else
+        } else {
             Log::print("Unknown integrator (known: LFRG, OML2, OML4)", Log::ERROR);
             exit(1);
-        #endif
+        }
     }
 
     /**
@@ -315,6 +329,7 @@ public:
             qtop = gauge->compute_topological_charge();
             *csv_qtop << time << "," << qtop << endl;
         #endif
+        cout << "time " << time << " dH " << dH << " acc " << acc << " plaq " << plaq << " qtop " << qtop;
         #if MEASURE_PSCC
             for (int i=0; i<V; i++) {
                 pscc[i] = 0; // @todo implement PSCC measurement

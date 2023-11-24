@@ -6,5 +6,5 @@
 
 #define     OUTPUT_CONFIG   "../results/gauge_config.csv"   // path to store output gauge field configuration
 
-#define     MULTI_TD        false                           // use multithreading on CPUs
+#define     MULTI_TD        false                            // use multithreading on CPUs
 #define     GPU             false                           // use CUDA 

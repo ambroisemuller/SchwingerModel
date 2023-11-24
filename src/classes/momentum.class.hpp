@@ -39,7 +39,7 @@ public:
         double norm = 0.0;
         for (int i=0; i<V; i++){
             for (int mu=0; mu<D; mu++){
-                Random::gauss_rand(1, values[1]+mu);
+                Random::gauss_rand(1, values[i]+mu);
                 values[i][mu] *= sqrt(2);
                 norm += values[i][mu] * values[i][mu];
             }
