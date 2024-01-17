@@ -51,6 +51,12 @@ int nmax, npf;
     FILE *file_A1P;
     const char *filename_A1P_ = "A1P.csv";
     char filename_A1P[64];
+    FILE *file_PA0;
+    const char *filename_PA0_ = "PA0.csv";
+    char filename_PA0[64];
+    FILE *file_PA1;
+    const char *filename_PA1_ = "PA1.csv";
+    char filename_PA1[64];
     FILE *file_V0V0;
     const char *filename_V0V0_ = "V0V0.csv";
     char filename_V0V0[64];
@@ -139,14 +145,10 @@ static void compute_correlators()
         S10_S11c = phi[0][site_index].s[1] * conj(phi[1][site_index].s[1]);
         S00_S10c = phi[0][site_index].s[0] * conj(phi[0][site_index].s[1]);
         S01_S11c = phi[1][site_index].s[0] * conj(phi[1][site_index].s[1]);
-        corr_A0_P_[site_index] = 2*creal(- S00_S10c - S01_S11c); /* S00_S01c + S10_S11c ; */
-        corr_A1_P_[site_index] = 2*cimag(- S00_S10c - S01_S11c); /* S00_S01c + S10_S11c ; */
-        /*
-        corr_P__A0[site_index] = 
-        );
-        corr_P__A1[site_index] = 
-        );
-        */
+        corr_A0_P_[site_index] = 2*creal(S00_S01c + S10_S11c); 
+        corr_A1_P_[site_index] = 2*cimag(S00_S01c + S10_S11c);
+        corr_P__A0[site_index] = - 2*creal(S00_S10c + S01_S11c);
+        corr_P__A1[site_index] = - 2*cimag(S00_S10c + S01_S11c);
         S00_S11c = phi[0][site_index].s[0] * conj(phi[1][site_index].s[1]);
         S01_S10c = phi[1][site_index].s[0] * conj(phi[0][site_index].s[1]);
         corr_V0_V0[site_index] = 2*creal(S00_S11c) - 2*creal(S01_S10c);
@@ -231,6 +233,26 @@ void datafile_headers(hmc_params_t *hmc_params,act_params_t *act_params)
         }
         fprintf(file_A1P, "\n");
         fclose(file_A1P);
+        /* PA0 */
+        sprintf(filename_PA0, "%s%s", DATA_FOLDER, filename_PA0_);
+        file_PA0 = fopen(filename_PA0, "w");
+        fprintf(file_PA0, "time,");
+        for (i=0; i<V; i++) { 
+            fprintf(file_PA0, "%d", i);
+            if (i != V-1) { fprintf(file_PA0, ",");}
+        }
+        fprintf(file_PA0, "\n");
+        fclose(file_PA0);
+        /* PA1 */
+        sprintf(filename_PA1, "%s%s", DATA_FOLDER, filename_PA1_);
+        file_PA1 = fopen(filename_PA1, "w");
+        fprintf(file_PA1, "time,");
+        for (i=0; i<V; i++) { 
+            fprintf(file_PA1, "%d", i);
+            if (i != V-1) { fprintf(file_PA1, ",");}
+        }
+        fprintf(file_PA1, "\n");
+        fclose(file_PA1);
         /* V0V0 */
         sprintf(filename_V0V0, "%s%s", DATA_FOLDER, filename_V0V0_);
         file_V0V0 = fopen(filename_V0V0, "w");
@@ -333,6 +355,24 @@ void measure_and_record(spinor** pf, double time, double dH, int acc)
         }
         fprintf(file_A1P, "\n");
         fclose(file_A1P);
+        /* PA0 */
+        file_PA0 = fopen(filename_PA0, "a");
+        fprintf(file_PA0, "%4.3e,", time);
+        for (i=0; i<V; i++) { 
+            fprintf(file_PA0, "%4.3e", corr_P__A0[i]); 
+            if (i != V-1) { fprintf(file_PA0, ",");}
+        }
+        fprintf(file_PA0, "\n");
+        fclose(file_PA0);
+        /* PA1 */
+        file_PA1 = fopen(filename_PA1, "a");
+        fprintf(file_PA1, "%4.3e,", time);
+        for (i=0; i<V; i++) { 
+            fprintf(file_PA1, "%4.3e", corr_P__A1[i]); 
+            if (i != V-1) { fprintf(file_PA1, ",");}
+        }
+        fprintf(file_PA1, "\n");
+        fclose(file_PA1);
         /* V0V0 */
         file_V0V0 = fopen(filename_V0V0, "a");
         fprintf(file_V0V0, "%4.3e,", time);
@@ -396,10 +436,16 @@ void run_plot_scripts()
     #if MEASURE_CORR
         c_corr = "corr";
     #endif
-    sprintf(command, "cd ../results/data_analysis/ && python plot.py %i %i %4.3e %4.3e %s %s %s %s %s", T, L, kappa, beta, c_dH, c_acc, c_plaq, c_qtop, c_corr);
+    sprintf(command, "cd ../results/data_analysis/ && python plot.py %i %i %4.3e %4.3e %s %s %s %s", T, L, kappa, beta, c_dH, c_acc, c_plaq, c_qtop);
     out = system("");
     out = system(command);
     if (out == 0){
-        printf("plotting successful\n");
+        printf("plotting of general observables successful\n");
+    }
+    sprintf(command, "cd ../results/data_analysis/ && python plot_corr.py %i %i 0", T, L);
+    out = system("");
+    out = system(command);
+    if (out == 0){
+        printf("plotting of correlators successful\n");
     }
 }

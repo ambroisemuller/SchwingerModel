@@ -3,3 +3,23 @@ build
 *.csv
 venv
 v2/results
+*.cnfg
+*.d
+*.o
+*.synctex.gz
+*.log
+*.fls
+*.fdb_latexmk
+*.aux
+live.main.tex
+
+
+
+# Ignore executable files
+*.exe
+*.out
+*.app
+*.jar
+*.war
+*.ear
+*.class
