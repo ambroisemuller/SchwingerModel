@@ -1,0 +1,85 @@
+
+PARAMETERS
+L              12
+DIM            2
+kappa          0.260000
+beta           4.000000
+ntherm         0
+ntraj          1
+traj_length    2.000000
+4th order OMF integrator
+nstep          6
+npf            2
+mu             0.000000
+mu             0.080000
+res_act        1.000000e-10
+res_frc        1.000000e-10
+seed           123
+END PARAMETERS
+READ CONF. qed_b4.0_k0.26_L12.cnfg
+dH -3.031e-02   ddH 5.457e-12   Dg 6.998845947237e-12   Dp 8.848810573170e-12
+
+
+PARAMETERS
+L              12
+DIM            2
+kappa          0.260000
+beta           4.000000
+ntherm         0
+ntraj          1
+traj_length    2.000000
+4th order OMF integrator
+nstep          6
+npf            2
+mu             0.000000
+mu             0.080000
+res_act        1.000000e-10
+res_frc        1.000000e-08
+seed           123
+END PARAMETERS
+READ CONF. qed_b4.0_k0.26_L12.cnfg
+dH -3.031e-02   ddH 1.755e-09   Dg 3.163620476698e-10   Dp 4.644737927606e-10
+
+
+PARAMETERS
+L              12
+DIM            2
+kappa          0.260000
+beta           4.000000
+ntherm         0
+ntraj          1
+traj_length    2.000000
+4th order OMF integrator
+nstep          6
+npf            2
+mu             0.000000
+mu             0.080000
+res_act        1.000000e-10
+res_frc        1.000000e-06
+seed           123
+END PARAMETERS
+READ CONF. qed_b4.0_k0.26_L12.cnfg
+dH -3.031e-02   ddH 2.464e-07   Dg 4.263253572390e-08   Dp 5.068936126396e-08
+
+
+PARAMETERS
+L              12
+DIM            2
+kappa          0.260000
+beta           4.000000
+ntherm         0
+ntraj          1
+traj_length    2.000000
+4th order OMF integrator
+nstep          6
+npf            2
+mu             0.000000
+mu             0.080000
+res_act        1.000000e-10
+res_frc        1.000000e-04
+seed           123
+END PARAMETERS
+READ CONF. qed_b4.0_k0.26_L12.cnfg
+dH -3.043e-02   ddH 1.795e-07   Dg 3.580081013865e-07   Dp 3.558734288159e-07
+
+
