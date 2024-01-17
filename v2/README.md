@@ -43,7 +43,7 @@ make
 
 ## To run
 
-In `SchwingerModel/build/` use
+In `SchwingerModel/v2/build/` use
 
 ```
 ./main

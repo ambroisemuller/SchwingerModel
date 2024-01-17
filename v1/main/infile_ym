@@ -1,0 +1,12 @@
+kappa       0.26
+beta        4.0
+ntherm      0
+ntraj       1000
+traj_length 2
+nstep       5
+integrator  OMF4
+npf         0
+res_act     1.e-10
+res_frc     1.e-8
+seed        116
+config      output.cnfg

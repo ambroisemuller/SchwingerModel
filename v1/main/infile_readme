@@ -1,0 +1,19 @@
+### This file is just an example used to define what an input file should contain
+### It will not work because of the comments: the program will complain
+### Use infile_qed and infile_ym instead as starting points to run
+
+kappa       0.26
+beta        4.0
+ntherm      0     
+ntraj       1000         # total HMC trajectories
+traj_length 2            # trajectory length tau
+nstep       5            # number of steps for the MD integration
+integrator  OMF4         # integrator name: LPFR, OMF2, OMF4
+lambda      0.19
+npf         2            # number of pseudo-fermions for Hasenbusch mass-preconditioning
+mu          0.0          # first Hasenbusch mass
+mu          0.08         # second Hasenbusch mass
+res_act     1.e-10       # precision solver for action computation: accept/reject step
+res_frc     1.e-8        # precision solver for force computation
+seed        116      
+config      output.cnfg  # name output configuration
