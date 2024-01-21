@@ -1,8 +1,8 @@
-kappa       0.24
-beta        4.0
+kappa       0.28
+beta        8
 ntherm      0
-ntraj       100
-traj_length 2
+ntraj       1000
+traj_length 0.5
 nstep       5
 integrator  OMF4
 npf         2

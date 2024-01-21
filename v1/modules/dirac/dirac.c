@@ -86,6 +86,7 @@ void dirac(spinor *s,spinor *r,double kappa,double mu)
                phase = 0;
             }
             */
+            
             c=-kappa*cexp(-I*(gauge[ix][nu] + phase)); /* pi phase for time boundaries (both forward and backward) */
          }
          else     /*backward hopping*/
@@ -97,6 +98,7 @@ void dirac(spinor *s,spinor *r,double kappa,double mu)
                phase = 0;
             }
             */
+            
             c=-kappa*cexp(I*(gauge[hop[ix][nu]][nu-D] + phase));
          }
 

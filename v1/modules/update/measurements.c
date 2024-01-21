@@ -119,7 +119,7 @@ static void compute_correlators()
     /* initialize */
     double mu = mus[0]; 
     int b_index, site_index;                            /* Spin and lattice indices     */
-    int zero_index = L*(T/2) + L/2;                     /* middle of lattice            */
+    int zero_index = 0;                     /* middle of lattice     L*(T/2) + L/2       */
     complex double S00_S11c, S01_S10c, S00_S01c, S10_S11c, S00_S10c, S01_S11c;
 
     /* compute S(x, 0) */
@@ -148,7 +148,7 @@ static void compute_correlators()
         corr_A0_P_[site_index] = 2*creal(S00_S01c + S10_S11c); 
         corr_A1_P_[site_index] = 2*cimag(S00_S01c + S10_S11c);
         corr_P__A0[site_index] = - 2*creal(S00_S10c + S01_S11c);
-        corr_P__A1[site_index] = - 2*cimag(S00_S10c + S01_S11c);
+        corr_P__A1[site_index] = 2*cimag(S00_S10c + S01_S11c);
         S00_S11c = phi[0][site_index].s[0] * conj(phi[1][site_index].s[1]);
         S01_S10c = phi[1][site_index].s[0] * conj(phi[0][site_index].s[1]);
         corr_V0_V0[site_index] = 2*creal(S00_S11c) - 2*creal(S01_S10c);
