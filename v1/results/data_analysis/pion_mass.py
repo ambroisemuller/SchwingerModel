@@ -24,9 +24,9 @@ if __name__=="__main__":
     summed_over_x = np.sum(reshaped_array, axis=2)
     average_summed_over_x = np.mean(summed_over_x[ntherm:, :], axis=0)
     # print(average_summed_over_x)
-    std_summed_over_x = np.std(summed_over_x[ntherm:, :], axis=0)
+    std_summed_over_x = np.std(summed_over_x[ntherm:, :], axis=0)/np.sqrt(summed_over_x.shape[0]-ntherm)
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 4))
-    ax1.errorbar(np.arange(T), average_summed_over_x, std_summed_over_x, fmt='.-', color='black', capsize=2)
+    ax1.errorbar(np.arange(T), average_summed_over_x, 3*std_summed_over_x, fmt='.-', color='black', capsize=2)
     ax1.set_yscale('log')
     meff = summed_over_x.copy()
     # meff[:, :-1] /= summed_over_x[:, 1:]
@@ -43,11 +43,11 @@ if __name__=="__main__":
             n_t_val = i
             N_T_val = T
             R_val = C_pp[i]/C_pp[(i+1)//T]
-            m_eff_guess = 0.5
+            m_eff_guess = 2
             m_eff_solution = fsolve(equation_to_solve, m_eff_guess, args=(n_t_val, N_T_val, R_val))
             meff[sample][i] = m_eff_solution
 
     meff_avg = np.mean(meff[ntherm:, :], axis=0)
-    meff_std = np.std(meff[ntherm:, :], axis=0)
-    ax2.errorbar(np.arange(T)+0.5, meff_avg, meff_std, fmt='.-', color='black', capsize=2)
+    meff_std = np.std(meff[ntherm:, :], axis=0)/np.sqrt(meff.shape[0]-ntherm)
+    ax2.errorbar(np.arange(T)+0.5, meff_avg, 3*meff_std, fmt='.-', color='black', capsize=2)
     fig.savefig('../plots/pion_mass.png')

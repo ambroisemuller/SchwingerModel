@@ -42,16 +42,16 @@ def plot_correlator(corr, title, log_plot):
 
     summed_values_0 = np.sum(reshaped_array, axis=1)
     average_summed_values_0 = np.mean(summed_values_0[ntherm:, :], axis=0)
-    std_summed_values_0 = np.std(summed_values_0[ntherm:, :], axis=0)
-    ax1.errorbar(np.arange(L), average_summed_values_0, std_summed_values_0)
+    std_summed_values_0 = np.std(summed_values_0[ntherm:, :], axis=0)/np.sqrt(summed_values_0.shape[0]-ntherm)
+    ax1.errorbar(np.arange(L), average_summed_values_0, std_summed_values_0, color='black', fmt='.-', capsize=2)
     if log_plot:
         ax1.set_yscale('log')
     ax1.set_xlabel('x')
 
     summed_values_1 = np.sum(reshaped_array, axis=2)
     average_summed_values_1 = np.mean(summed_values_1[ntherm:, :], axis=0)
-    std_summed_values_1 = np.std(summed_values_1[ntherm:, :], axis=0)
-    ax2.errorbar(np.arange(T), average_summed_values_1, std_summed_values_1)
+    std_summed_values_1 = np.std(summed_values_1[ntherm:, :], axis=0)/np.sqrt(summed_values_1.shape[0]-ntherm)
+    ax2.errorbar(np.arange(T), average_summed_values_1, std_summed_values_1, color='black', fmt='.-', capsize=2)
     if log_plot:
         ax2.set_yscale('log')
     ax2.set_xlabel('t')
