@@ -152,15 +152,15 @@ public:
         time = 0;
         auto start = chrono::high_resolution_clock::now();
 
-        // Log::progressBar(0);
+        Log::progressBar(0);
         for (int itraj=0; itraj<N_TRAJ; itraj++) {
-            cout << "\ntraj " << itraj;
+            // cout << "\ntraj " << itraj;
             single_trajectory();
             time += TRAJ_LENGTH;
             record_observables();
-            // Log::progressBar(itraj/double(N_TRAJ));
+            Log::progressBar(itraj/double(N_TRAJ));
         }
-        // Log::progressBar(1);
+        Log::progressBar(1);
         Log::newLine();
 
         auto end = chrono::high_resolution_clock::now();
@@ -178,7 +178,7 @@ public:
         double H1 = start_hmc();
         integrate();
         double H2 = hamiltonian();
-        cout << " : H1 = " << H1 << ", H2 = " << H2 << endl;
+        // cout << " : H1 = " << H1 << ", H2 = " << H2 << endl;
 
         dH = H2 - H1;
         acc = 0;
@@ -204,7 +204,7 @@ public:
         double H_mom = momentum->initialize_momentum();
         double H_fermion = fermion_heat();
         double H_gauge = gauge->compute_gauge_action(BETA);
-        cout << "\nH_mom = " << H_mom << ", H_fermion = " << H_fermion << ", H_gauge = " << H_gauge << endl;
+        // cout << "\nH_mom = " << H_mom << ", H_fermion = " << H_fermion << ", H_gauge = " << H_gauge << endl;
         return H_mom + H_fermion + H_gauge;
     }
 
@@ -229,19 +229,19 @@ public:
     */
     double hamiltonian(){
         double action = momentum->compute_momentum_action();
-        cout << "mom_action = " << action;
+        // cout << "mom_action = " << action;
         if (N_PF > 0){   
             for (int i=0; i<N_PF-1; i++){
                 double f_action = pfermion[i]->compute_fermion_action2(KAPPA, mu_list[i], mu_list[i+1], RES_ACT);
-                cout << ", fermion action " << i << " = " << f_action; 
+                // cout << ", fermion action " << i << " = " << f_action; 
                 action += f_action;
             }
             double f_action = pfermion[N_PF-1]->compute_fermion_action1(KAPPA, mu_list[N_PF-1], RES_ACT);
-            cout << ", fermion action " << N_PF-1 << " = " << f_action; 
+            // cout << ", fermion action " << N_PF-1 << " = " << f_action; 
             action += f_action;
         }
         double g_action = gauge->compute_gauge_action(BETA); 
-        cout << ", gauge action = " << g_action << endl;
+        // cout << ", gauge action = " << g_action << endl;
         action += g_action;   
         return action;
     }
@@ -329,7 +329,7 @@ public:
             qtop = gauge->compute_topological_charge();
             *csv_qtop << time << "," << qtop << endl;
         #endif
-        cout << "time " << time << " dH " << dH << " acc " << acc << " plaq " << plaq << " qtop " << qtop;
+        // cout << "time " << time << " dH " << dH << " acc " << acc << " plaq " << plaq << " qtop " << qtop;
         #if MEASURE_PSCC
             for (int i=0; i<V; i++) {
                 pscc[i] = 0; // @todo implement PSCC measurement

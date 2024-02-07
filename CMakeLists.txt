@@ -10,7 +10,9 @@ project(SchwingerModel)
 # MAIN
 ########################
 message("Add main executable")
+find_package(Threads REQUIRED)
 add_executable(main main.cpp)
+target_link_libraries(main Threads::Threads)
 # add_compile_options(-Wall -Wextra)
 
 ########################
@@ -19,6 +21,7 @@ add_executable(main main.cpp)
 
 # UNIT TESTS
 add_executable(unit_test    tests/unit_test.cpp)
+target_link_libraries(unit_test Threads::Threads)
 add_test(NAME Test          COMMAND unit_test)
 
 

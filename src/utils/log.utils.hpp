@@ -106,8 +106,8 @@ namespace Log {
         }
 
         std::cout << "] " << ceil(progress * 100.0) << " % | Elapsed: " << std::to_string(int(elapsed_time)) << "s"
-        << " Est. remaining: " << std::to_string(int(elapsed_time * (1 / (progress+1e-64) - 1))) << "s"
-        << " Est. total: " << std::to_string(int(elapsed_time / (progress+1e-64) )) << "s";
+        << " Est. remaining: " << std::to_string(max(0, int(elapsed_time * (1 / (progress+1e-64) - 1)))) << "s"
+        << " Est. total: " << std::to_string(max(0, int(elapsed_time / (progress+1e-64) ))) << "s";
 
         std::cout.flush();
     }
