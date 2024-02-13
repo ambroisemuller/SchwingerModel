@@ -25,14 +25,27 @@ if __name__=="__main__":
     average_summed_over_x = np.mean(summed_over_x[ntherm:, :], axis=0)
     # print(average_summed_over_x)
     std_summed_over_x = np.std(summed_over_x[ntherm:, :], axis=0)/np.sqrt(summed_over_x.shape[0]-ntherm)
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 4))
+    fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(15, 4))
     ax1.errorbar(np.arange(T), average_summed_over_x, 3*std_summed_over_x, fmt='.-', color='black', capsize=2)
     ax1.set_yscale('log')
-    meff = summed_over_x.copy()
-    # meff[:, :-1] /= summed_over_x[:, 1:]
-    # meff[:, -1] /= summed_over_x[:, 0]
-    # meff = np.log(meff)
+    ax1.set_title(r'$< $P(t) \ P(0)$ >$')
 
+    # LOG
+
+    meff = summed_over_x.copy()
+    meff[:, :-1] /= summed_over_x[:, 1:]
+    meff[:, -1] /= summed_over_x[:, 0]
+    meff = np.log(meff)
+    meff_avg = np.mean(meff[ntherm:, :], axis=0)
+    meff_std = np.std(meff[ntherm:, :], axis=0)/np.sqrt(meff.shape[0]-ntherm)
+    ax2.errorbar(np.arange(T)+0.5, meff_avg, 3*meff_std, fmt='.-', color='black', capsize=2)
+    ax2.plot(np.arange(0, T//2), np.ones(T//2)*4.7/32, '--', color='blue')
+    ax2.plot(np.arange(T//2, T), -np.ones(T-T//2)*4.7/32, '--', color='blue')
+    ax2.set_title(r'effective mass (log)')
+
+    # COSH solution
+    
+    meff = summed_over_x.copy()
     m0 = 0.7
     def equation_to_solve(m_eff, n_t, N_T, c_ratio):
         return c_ratio * np.cosh(m_eff * ((n_t + 1)//N_T - N_T/2)) - np.cosh(m_eff * (n_t - N_T/2))
@@ -49,5 +62,10 @@ if __name__=="__main__":
 
     meff_avg = np.mean(meff[ntherm:, :], axis=0)
     meff_std = np.std(meff[ntherm:, :], axis=0)/np.sqrt(meff.shape[0]-ntherm)
-    ax2.errorbar(np.arange(T)+0.5, meff_avg, 3*meff_std, fmt='.-', color='black', capsize=2)
-    fig.savefig('../plots/pion_mass.png')
+    ax3.errorbar(np.arange(T)[1:]-0.5, meff_avg[1:], 3*meff_std[1:], fmt='.-', color='black', capsize=2)
+    # ax3.set_ylim(0, 0.5)
+    ax3.plot(np.arange(T), np.ones(T)*4.7/32, '--', color='blue')
+    ax3.set_title(r'effective mass (cosh solution)')
+
+
+    fig.savefig('../plots/pion_mass_new.png')

@@ -20,6 +20,7 @@ typedef struct {
    int nstep;       /*leapfrog steps per trajectory*/
    int ntherm ;     /*number of thermalization steps*/
    int ntraj ;      /*number of trajectories after thermalization*/
+   int subtraj ;    /*number of sub-trajectories per trajectory (i.e. trajectories between samples)*/
    int npf;         /*number of pseudofermion fields*/
    integrator_t integrator; /*MD integration scheme*/ 
    double lambda;   /*free parameter OMF2 integrator*/

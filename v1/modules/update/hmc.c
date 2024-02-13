@@ -404,12 +404,12 @@ void reversibility(hmc_params_t *hmc_params,act_params_t *act_params)
 
 double hmc(hmc_params_t *hmc_params,act_params_t *act_params)
 {
-   int itraj,accept,acc,i,nstep;
+   int itraj,isubtraj,accept,acc,i,nstep;
    double H1,H2,dH,r;
    double tau,lambda;
    double gauge_old[V][D];
 
-   tau=hmc_params->tlength;
+   tau=hmc_params->tlength/(double)hmc_params->subtraj;
    nstep=hmc_params->nstep;
    lambda=hmc_params->lambda;
 
@@ -433,44 +433,53 @@ double hmc(hmc_params_t *hmc_params,act_params_t *act_params)
 
    datafile_headers(hmc_params, act_params);
 
+   printf("tau %f \n", tau);
+
    for (itraj=0;itraj<hmc_params->ntraj;itraj++)
    {
-      assign_link(gauge,gauge_old);
 
-      /* initialize pseudofermions and momenta */
-      H1=start_hmc();
-
-      /* MD integration */
-      if (hmc_params->integrator==LPFR)
-         leapfrog(tau,nstep);
-      else if (hmc_params->integrator==OMF2)
-         omelyan2(lambda,tau,nstep);
-      else if (hmc_params->integrator==OMF4)
-         omelyan4(tau,nstep);
-      else
-         printf("Unknown integrator\n");
-
-      /* acceptance step */
-      H2=hamiltonian();
-      dH=H2-H1;
-      acc=0;
-
-      if (dH<0)
-         acc=1;
-      else
+      for (isubtraj=0; isubtraj<hmc_params->subtraj;isubtraj++)
       {
-         ranlxd(&r,1);
-         if (exp(-dH)>r)
+         assign_link(gauge,gauge_old);
+
+         /* initialize pseudofermions and momenta */
+         H1=start_hmc();
+
+         /* MD integration */
+         if (hmc_params->integrator==LPFR)
+            leapfrog(tau,nstep);
+         else if (hmc_params->integrator==OMF2)
+            omelyan2(lambda,tau,nstep);
+         else if (hmc_params->integrator==OMF4)
+            omelyan4(tau,nstep);
+         else
+            printf("Unknown integrator\n");
+
+         /* acceptance step */
+         H2=hamiltonian();
+         dH=H2-H1;
+         acc=0;
+
+         if (dH<0)
             acc=1;
          else
-            assign_link(gauge_old,gauge);
+         {
+            ranlxd(&r,1);
+            if (exp(-dH)>r)
+               acc=1;
+            else
+               assign_link(gauge_old,gauge);
+         }  
+         printf("traj %d  subtraj %d  dH %+4.3e  acc %d\n", itraj, isubtraj, dH, acc);
+         fflush(stdout);
+         accept+=acc;
       }
 
-      measure_and_record(pf, itraj*tau, dH, acc);
+      printf("measuring correlators...\n");
+      measure_and_record(pf, itraj*tau*(double)hmc_params->subtraj, dH, acc);
 
-      printf("traj %d   dH %+4.3e   acc %d\n", itraj, dH, acc);
       fflush(stdout);
-      accept+=acc;
+      
    }
 
    if (npf>0)
@@ -482,6 +491,6 @@ double hmc(hmc_params_t *hmc_params,act_params_t *act_params)
 
    run_plot_scripts();
 
-   return accept/(double)hmc_params->ntraj;
+   return accept/((double)hmc_params->ntraj*(double)hmc_params->subtraj);
 }
 

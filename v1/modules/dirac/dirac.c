@@ -79,25 +79,25 @@ void dirac(spinor *s,spinor *r,double kappa,double mu)
       {
          if (nu<D) /* forward hopping*/
          {
-            /*
-            if (nu == 0 && (ix/L == T-1)){
+            
+            if (nu == 1 && (ix/L == T-1) && !PERIODIC){
                phase = PI;
             } else{
                phase = 0;
             }
-            */
+            
             
             c=-kappa*cexp(-I*(gauge[ix][nu] + phase)); /* pi phase for time boundaries (both forward and backward) */
          }
          else     /*backward hopping*/
          {
-            /*
-            if (nu == D && (ix/L == 0)){
+            
+            if (nu == D+1 && (ix/L == 0) && !PERIODIC){
                phase = PI;
             } else{
                phase = 0;
             }
-            */
+            
             
             c=-kappa*cexp(I*(gauge[hop[ix][nu]][nu-D] + phase));
          }

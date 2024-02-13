@@ -10,6 +10,9 @@
 /* lattice volume, needs to be adjusted according to number of dimensions*/
 #define V (L*T)
 
+/* Periodicity of pseudofermion fields in time */
+#define PERIODIC 0
+
 #ifdef CONTROL 
 #define EXTERN 
 #undef CONTROL
