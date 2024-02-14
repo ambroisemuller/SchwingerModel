@@ -73,6 +73,7 @@ static int read_input(char *input)
    get_val(fp, "beta",        "%lf",&act_params.beta);
    get_val(fp, "ntherm",      "%i",&hmc_params.ntherm);
    get_val(fp, "ntraj",       "%i",&hmc_params.ntraj);
+   get_val(fp, "subtraj",       "%i",&hmc_params.subtraj);
    get_val(fp, "traj_length", "%lf",&hmc_params.tlength);
    get_val(fp, "nstep",       "%i",&hmc_params.nstep);
    get_val(fp, "integrator",  "%s",c);
@@ -112,6 +113,7 @@ static int read_input(char *input)
    printf("beta           %f\n",act_params.beta);
    printf("ntherm         %i\n",hmc_params.ntherm);
    printf("ntraj          %i\n",hmc_params.ntraj);
+   printf("subtraj          %i\n",hmc_params.subtraj);
    printf("traj_length    %f\n",hmc_params.tlength);
    if (hmc_params.integrator==LPFR)
       printf("Leapfrog integrator\n");
