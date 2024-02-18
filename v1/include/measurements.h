@@ -12,7 +12,7 @@
 /*  Correlators */
 #define MEASURE_CORR    1
 
-#define DATA_FOLDER     "../results/observables/"
+#define DATA_FOLDER     "../studies/"
 
 /* measurements.c */
 extern void datafile_headers(hmc_params_t *hmc_params,act_params_t *act_params);

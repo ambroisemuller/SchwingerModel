@@ -185,6 +185,7 @@ int main(int argc, char* argv[])
    double acc;
    int ix,mu;
 
+
    if (argc!=2 && argc!=3) 
    {
       fprintf(stderr, "Number of arguments not correct\n");

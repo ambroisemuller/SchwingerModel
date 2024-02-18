@@ -7,6 +7,10 @@ double kappa, beta, eps, res_act, res_frc;
 double *mus;
 int nmax, npf;
 
+char data_folder[128];
+char plot_folder[128];
+char study_folder[128];
+
 #if MEASURE_DH
     FILE *file_dH;
     const char *filename_dH_ = "dH.csv";
@@ -163,6 +167,9 @@ void datafile_headers(hmc_params_t *hmc_params,act_params_t *act_params)
 {
     int i;
     int b_index;
+    char bc[2];
+    char command[256];
+
     kappa = act_params->kappa;
     beta = act_params->beta;
     npf = hmc_params->npf;
@@ -171,27 +178,48 @@ void datafile_headers(hmc_params_t *hmc_params,act_params_t *act_params)
     res_frc = hmc_params->res_frc;
     eps = res_frc;
     nmax = 1e3;
-    
+
+    if (PERIODIC == 0){
+        bc[0] = 'A';
+    } else {
+        bc[0] = 'P';
+    }
+    sprintf(data_folder, "%sT%d_L%d_%s", DATA_FOLDER, T, L, bc);
+    sprintf(command, "mkdir %s", data_folder);
+    system(command);
+    sprintf(data_folder, "%sT%d_L%d_%s/k%.3f_b%.3f/", DATA_FOLDER, T, L, bc, kappa, beta);
+    sprintf(study_folder, "T%d_L%d_%s/k%.3f_b%.3f/", T, L, bc, kappa, beta);
+    sprintf(command, "mkdir %s", data_folder);
+    system(command);
+    sprintf(command, "cp ./infile_qed %s", data_folder);
+    system(command);
+    sprintf(data_folder, "%sT%d_L%d_%s/k%.3f_b%.3f/%s/", DATA_FOLDER, T, L, bc, kappa, beta, "observables");
+    sprintf(plot_folder, "%sT%d_L%d_%s/k%.3f_b%.3f/%s/", DATA_FOLDER, T, L, bc, kappa, beta, "plots");
+    sprintf(command, "mkdir %s", data_folder);
+    system(command);
+    sprintf(command, "mkdir %s", plot_folder);
+    system(command);
+
     #if MEASURE_DH
-        sprintf(filename_dH, "%s%s", DATA_FOLDER, filename_dH_);
+        sprintf(filename_dH, "%s%s", data_folder, filename_dH_);
         file_dH = fopen(filename_dH, "w");
         fprintf(file_dH, "time,dH\n");
         fclose(file_dH);
     #endif
     #if MEASURE_ACC
-        sprintf(filename_acc, "%s%s", DATA_FOLDER, filename_acc_);
+        sprintf(filename_acc, "%s%s", data_folder, filename_acc_);
         file_acc = fopen(filename_acc, "w");
         fprintf(file_acc, "time,acc\n");
         fclose(file_acc);
     #endif
     #if MEASURE_PLAQ
-        sprintf(filename_plaq, "%s%s", DATA_FOLDER, filename_plaq_);
+        sprintf(filename_plaq, "%s%s", data_folder, filename_plaq_);
         file_plaq = fopen(filename_plaq, "w");
         fprintf(file_plaq, "time,plaq\n");
         fclose(file_plaq);
     #endif
     #if MEASURE_QTOP    
-        sprintf(filename_qtop, "%s%s", DATA_FOLDER, filename_qtop_);
+        sprintf(filename_qtop, "%s%s", data_folder, filename_qtop_);
         file_qtop = fopen(filename_qtop, "w");
         fprintf(file_qtop, "time,qtop\n");
         fclose(file_qtop);
@@ -204,7 +232,7 @@ void datafile_headers(hmc_params_t *hmc_params,act_params_t *act_params)
         }
         eta = malloc(V*sizeof(spinor));
         /* PP */
-        sprintf(filename_PP, "%s%s", DATA_FOLDER, filename_PP_);
+        sprintf(filename_PP, "%s%s", data_folder, filename_PP_);
         file_PP = fopen(filename_PP, "w");
         fprintf(file_PP, "time,");
         for (i=0; i<V; i++) { 
@@ -214,7 +242,7 @@ void datafile_headers(hmc_params_t *hmc_params,act_params_t *act_params)
         fprintf(file_PP, "\n");
         fclose(file_PP);
         /* A0P */
-        sprintf(filename_A0P, "%s%s", DATA_FOLDER, filename_A0P_);
+        sprintf(filename_A0P, "%s%s", data_folder, filename_A0P_);
         file_A0P = fopen(filename_A0P, "w");
         fprintf(file_A0P, "time,");
         for (i=0; i<V; i++) { 
@@ -224,7 +252,7 @@ void datafile_headers(hmc_params_t *hmc_params,act_params_t *act_params)
         fprintf(file_A0P, "\n");
         fclose(file_A0P);
         /* A1P */
-        sprintf(filename_A1P, "%s%s", DATA_FOLDER, filename_A1P_);
+        sprintf(filename_A1P, "%s%s", data_folder, filename_A1P_);
         file_A1P = fopen(filename_A1P, "w");
         fprintf(file_A1P, "time,");
         for (i=0; i<V; i++) { 
@@ -234,7 +262,7 @@ void datafile_headers(hmc_params_t *hmc_params,act_params_t *act_params)
         fprintf(file_A1P, "\n");
         fclose(file_A1P);
         /* PA0 */
-        sprintf(filename_PA0, "%s%s", DATA_FOLDER, filename_PA0_);
+        sprintf(filename_PA0, "%s%s", data_folder, filename_PA0_);
         file_PA0 = fopen(filename_PA0, "w");
         fprintf(file_PA0, "time,");
         for (i=0; i<V; i++) { 
@@ -244,7 +272,7 @@ void datafile_headers(hmc_params_t *hmc_params,act_params_t *act_params)
         fprintf(file_PA0, "\n");
         fclose(file_PA0);
         /* PA1 */
-        sprintf(filename_PA1, "%s%s", DATA_FOLDER, filename_PA1_);
+        sprintf(filename_PA1, "%s%s", data_folder, filename_PA1_);
         file_PA1 = fopen(filename_PA1, "w");
         fprintf(file_PA1, "time,");
         for (i=0; i<V; i++) { 
@@ -254,7 +282,7 @@ void datafile_headers(hmc_params_t *hmc_params,act_params_t *act_params)
         fprintf(file_PA1, "\n");
         fclose(file_PA1);
         /* V0V0 */
-        sprintf(filename_V0V0, "%s%s", DATA_FOLDER, filename_V0V0_);
+        sprintf(filename_V0V0, "%s%s", data_folder, filename_V0V0_);
         file_V0V0 = fopen(filename_V0V0, "w");
         fprintf(file_V0V0, "time,");
         for (i=0; i<V; i++) { 
@@ -264,7 +292,7 @@ void datafile_headers(hmc_params_t *hmc_params,act_params_t *act_params)
         fprintf(file_V0V0, "\n");
         fclose(file_V0V0);
         /* V0V1 */
-        sprintf(filename_V0V1, "%s%s", DATA_FOLDER, filename_V0V1_);
+        sprintf(filename_V0V1, "%s%s", data_folder, filename_V0V1_);
         file_V0V1 = fopen(filename_V0V1, "w");
         fprintf(file_V0V1, "time,");
         for (i=0; i<V; i++) { 
@@ -274,7 +302,7 @@ void datafile_headers(hmc_params_t *hmc_params,act_params_t *act_params)
         fprintf(file_V0V1, "\n");
         fclose(file_V0V1);
         /* V1V0 */
-        sprintf(filename_V1V0, "%s%s", DATA_FOLDER, filename_V1V0_);
+        sprintf(filename_V1V0, "%s%s", data_folder, filename_V1V0_);
         file_V1V0 = fopen(filename_V1V0, "w");
         fprintf(file_V1V0, "time,");
         for (i=0; i<V; i++) { 
@@ -284,7 +312,7 @@ void datafile_headers(hmc_params_t *hmc_params,act_params_t *act_params)
         fprintf(file_V1V0, "\n");
         fclose(file_V1V0);
         /* V1V1 */
-        sprintf(filename_V1V1, "%s%s", DATA_FOLDER, filename_V1V1_);
+        sprintf(filename_V1V1, "%s%s", data_folder, filename_V1V1_);
         file_V1V1 = fopen(filename_V1V1, "w");
         fprintf(file_V1V1, "time,");
         for (i=0; i<V; i++) { 
@@ -436,16 +464,35 @@ void run_plot_scripts()
     #if MEASURE_CORR
         c_corr = "corr";
     #endif
-    sprintf(command, "cd ../results/data_analysis/ && python plot.py %i %i %4.3e %4.3e %s %s %s %s", T, L, kappa, beta, c_dH, c_acc, c_plaq, c_qtop);
+
+    /* sprintf(command, "cd ../results/data_analysis/ && python3 plot.py %i %i %4.3e %4.3e %s %s %s %s", T, L, kappa, beta, c_dH, c_acc, c_plaq, c_qtop); */
+    sprintf(command, "cd ../studies/ && python3 plot.py %s", study_folder);
     out = system("");
     out = system(command);
     if (out == 0){
         printf("plotting of general observables successful\n");
     }
-    sprintf(command, "cd ../results/data_analysis/ && python plot_corr.py %i %i 0", T, L);
+
+    /* printf(command, "cd ../results/data_analysis/ && python3 plot_corr.py %i %i 0", T, L); */
+    sprintf(command, "cd ../studies/ && python3 plot_corr.py %s", study_folder);
     out = system("");
     out = system(command);
     if (out == 0){
         printf("plotting of correlators successful\n");
     }
+
+    sprintf(command, "cd ../studies/ && python3 pcac_mass.py %s", study_folder);
+    out = system("");
+    out = system(command);
+    if (out == 0){
+        printf("plotting of PCAC mass successful\n");
+    }
+
+    sprintf(command, "cd ../studies/ && python3 pion_mass.py %s", study_folder);
+    out = system("");
+    out = system(command);
+    if (out == 0){
+        printf("plotting of pion mass successful\n");
+    }
+    
 }

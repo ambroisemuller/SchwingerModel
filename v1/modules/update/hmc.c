@@ -409,6 +409,7 @@ double hmc(hmc_params_t *hmc_params,act_params_t *act_params)
    double tau,lambda;
    double gauge_old[V][D];
 
+
    tau=hmc_params->tlength/(double)hmc_params->subtraj;
    nstep=hmc_params->nstep;
    lambda=hmc_params->lambda;
