@@ -16,8 +16,8 @@ idxT = folder.find("T")
 idx_ = folder.find("_")
 idxL = folder.find("L")
 idx__ = folder.find("/")
-T = int(folder[idxT+1:idx_])
-L = int(folder[idxL+1:idx__-2])
+T = int(folder[idxT+1:idx_])-1      # remove -1
+L = int(folder[idxL+1:idx__-2])-1   # remove -1
 
 if __name__=="__main__":
      # find pion mass
@@ -26,9 +26,10 @@ if __name__=="__main__":
     time = df.iloc[:, 0].values
     number_of_time_values = len(time)
     df = df.drop(df.columns[0], axis=1)
-    if df.shape[1] != T * L:
+    if df.shape[1] != (T+1) * (L+1): # remove +1
         raise ValueError("The number of elements in the CSV does not match number_of_time_values * T * L")
-    reshaped_array = df.values.reshape(number_of_time_values, T, L)
+    reshaped_array = df.values.reshape(number_of_time_values, T+1, L+1) # remove +1 
+    reshaped_array = reshaped_array[:,1:,1:] # remove line
     summed_over_x = np.sum(reshaped_array, axis=2)
     average_summed_over_x = np.mean(summed_over_x[ntherm:, :], axis=0)
     # print(average_summed_over_x)
@@ -36,7 +37,7 @@ if __name__=="__main__":
     fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(15, 4))
     ax1.errorbar(np.arange(T), average_summed_over_x, 3*std_summed_over_x, fmt='.-', color='black', capsize=2)
     ax1.set_yscale('log')
-    ax1.set_title(r'$< $P(t) \ P(0)$ >$')
+    ax1.set_title(r'$< $P(t)  P(0)$ >$')
 
     # LOG
 
@@ -54,7 +55,7 @@ if __name__=="__main__":
     # COSH solution
     
     meff = summed_over_x.copy()
-    m0 = 0.7
+    m0 = 1
     def equation_to_solve(m_eff, n_t, N_T, c_ratio):
         return c_ratio * np.cosh(m_eff * ((n_t + 1)//N_T - N_T/2)) - np.cosh(m_eff * (n_t - N_T/2))
     for sample in range(number_of_time_values):

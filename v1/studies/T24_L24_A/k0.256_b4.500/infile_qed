@@ -1,8 +1,8 @@
-kappa       0.2530
-beta        8
+kappa       0.2564
+beta        4.5
 ntherm      0
 ntraj       5000
-subtraj     12
+subtraj     10
 traj_length 1
 nstep       5
 integrator  LPFR

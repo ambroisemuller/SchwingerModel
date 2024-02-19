@@ -3,7 +3,7 @@ import subprocess
 import sys
 
 args = sys.argv
-common_ntherm = int(args[2]) if len(args) > 1 else 0
+common_ntherm = int(args[1]) if len(args) > 1 else 0
 
 # Set the base_path to the current working directory
 base_path = os.getcwd()

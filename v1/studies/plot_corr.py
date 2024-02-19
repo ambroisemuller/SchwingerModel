@@ -15,8 +15,8 @@ idxT = folder.find("T")
 idx_ = folder.find("_")
 idxL = folder.find("L")
 idx__ = folder.find("/")
-T = int(folder[idxT+1:idx_])
-L = int(folder[idxL+1:idx__-2])
+T = int(folder[idxT+1:idx_])-1      # remove -1
+L = int(folder[idxL+1:idx__-2])-1   # remove -1
 
 def plot_correlator(corr, title, log_plot):
     filename = f"{data_folder}{corr}.csv"
@@ -24,9 +24,10 @@ def plot_correlator(corr, title, log_plot):
     time = df.iloc[:, 0].values
     number_of_time_values = len(time)
     df = df.drop(df.columns[0], axis=1)
-    if df.shape[1] != T * L:
+    if df.shape[1] != (T+1) * (L+1): # remove +1
         raise ValueError("The number of elements in the CSV does not match number_of_time_values * T * L")
-    reshaped_array = df.values.reshape(number_of_time_values, T, L)
+    reshaped_array = df.values.reshape(number_of_time_values, T+1, L+1) # remove +1
+    reshaped_array = reshaped_array[:,1:,1:] # remove line
     average_values = np.mean(reshaped_array[ntherm:, :, :], axis=0)
 
     fig = plt.figure(figsize=(12, 6))
