@@ -12,6 +12,8 @@
  */ 
 
 #define CONTROL
+#include "lattice.h"
+#include "measurements.h"
 #include "schwinger.h"
 #include "geometry.h"
 #include "random.h"
@@ -25,7 +27,7 @@
 static hmc_params_t hmc_params;
 static act_params_t act_params;
 static int seed;
-static char cfile[128];
+char cfile[128];
 
 
 static int get_val(FILE* fp, char *str, char* fmt,  void* val)
@@ -183,8 +185,16 @@ static void read_config(char *cfile)
 int main(int argc, char* argv[])
 {
    double acc;
-   int ix,mu;
+   int ix, mu;
+   char config_file[128];
+   char bc[2];
 
+   if (PERIODIC == 0){
+        bc[0] = 'A';
+    } else {
+        bc[0] = 'P';
+    }
+   bc[1] = '\0';
 
    if (argc!=2 && argc!=3) 
    {
@@ -215,14 +225,18 @@ int main(int argc, char* argv[])
    }    
    else
    {
-      read_config(argv[2]);
-      printf("READ CONF. %s\n",argv[2]);
+      sprintf(config_file, "%sT%d_L%d_%s/k%.4f_b%.3f/%s", DATA_FOLDER, T, L, bc, act_params.kappa, act_params.beta, argv[2]);
+      read_config(config_file);
+      printf("READ CONF. %s\n",config_file);
    }
 
    /* do hmc */
    acc=hmc(&hmc_params,&act_params);
    printf("Acc-rate %4.3e\n",acc);
-   save_config(cfile);
+
+   sprintf(config_file, "%sT%d_L%d_%s/k%.4f_b%.3f/%s", DATA_FOLDER, T, L, bc, act_params.kappa, act_params.beta, cfile);
+   save_config(config_file);
+   printf("\nField configurations saved to %s\n", config_file);
 
    return 0;
 }

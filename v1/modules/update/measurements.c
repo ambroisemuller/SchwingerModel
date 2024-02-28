@@ -11,68 +11,64 @@ char data_folder[128];
 char plot_folder[128];
 char study_folder[128];
 
-#if MEASURE_DH
-    FILE *file_dH;
-    const char *filename_dH_ = "dH.csv";
-    char filename_dH[64];
-    #endif
-#if MEASURE_ACC
-    FILE *file_acc;
-    const char *filename_acc_ = "acc.csv";
-    char filename_acc[64];
-#endif
-#if MEASURE_PLAQ
-    double plaq;
-    FILE *file_plaq;
-    const char *filename_plaq_ = "plaq.csv";
-    char filename_plaq[64];
-#endif
-#if MEASURE_QTOP
-    double qtop;
-    FILE *file_qtop;
-    const char *filename_qtop_ = "qtop.csv";
-    char filename_qtop[64];
-#endif
+FILE *file_dH;
+const char *filename_dH_ = "dH.csv";
+char filename_dH[64];
 
-#if MEASURE_CORR
-    double corr_P__P_[V];   /*  < P(x) P(0) >       */
-    double corr_A0_P_[V];   /*  < A_0(x) P(0) >     */
-    double corr_A1_P_[V];   /*  < A_1(x) P(0) >     */
-    double corr_P__A0[V];   /*  < P(x) A_0(0) >     */
-    double corr_P__A1[V];   /*  < P(x) A_1(0) >     */
-    double corr_V0_V0[V];   /*  < V_0(x) V_0(0) >   */
-    double corr_V0_V1[V];   /*  < V_0(x) V_1(0) >   */
-    double corr_V1_V0[V];   /*  < V_1(x) V_0(0) >   */
-    double corr_V1_V1[V];   /*  < V_1(x) V_1(0) >   */
-    static spinor **phi;    /* workspace: CG solution spinor field */ 
-    static spinor *eta;     /* workspace: CG source spinor field   */ 
-    FILE *file_PP;
-    const char *filename_PP_ = "PP.csv";
-    char filename_PP[64];
-    FILE *file_A0P;
-    const char *filename_A0P_ = "A0P.csv";
-    char filename_A0P[64];
-    FILE *file_A1P;
-    const char *filename_A1P_ = "A1P.csv";
-    char filename_A1P[64];
-    FILE *file_PA0;
-    const char *filename_PA0_ = "PA0.csv";
-    char filename_PA0[64];
-    FILE *file_PA1;
-    const char *filename_PA1_ = "PA1.csv";
-    char filename_PA1[64];
-    FILE *file_V0V0;
-    const char *filename_V0V0_ = "V0V0.csv";
-    char filename_V0V0[64];
-    FILE *file_V0V1;
-    const char *filename_V0V1_ = "V0V1.csv";
-    char filename_V0V1[64];
-    FILE *file_V1V0;
-    const char *filename_V1V0_ = "V1V0.csv";
-    char filename_V1V0[64];
-    FILE *file_V1V1;
-    const char *filename_V1V1_ = "V1V1.csv";
-    char filename_V1V1[64];
+FILE *file_acc;
+const char *filename_acc_ = "acc.csv";
+char filename_acc[64];
+
+double plaq;
+FILE *file_plaq;
+const char *filename_plaq_ = "plaq.csv";
+char filename_plaq[64];
+
+double qtop;
+FILE *file_qtop;
+const char *filename_qtop_ = "qtop.csv";
+char filename_qtop[64];
+
+double corr_P__P_[V];   /*  < P(x) P(0) >       */
+double corr_A0_P_[V];   /*  < A_0(x) P(0) >     */
+double corr_A1_P_[V];   /*  < A_1(x) P(0) >     */
+double corr_P__A0[V];   /*  < P(x) A_0(0) >     */
+double corr_P__A1[V];   /*  < P(x) A_1(0) >     */
+double corr_V0_V0[V];   /*  < V_0(x) V_0(0) >   */
+double corr_V0_V1[V];   /*  < V_0(x) V_1(0) >   */
+double corr_V1_V0[V];   /*  < V_1(x) V_0(0) >   */
+double corr_V1_V1[V];   /*  < V_1(x) V_1(0) >   */
+
+static spinor **phi;    /* workspace: CG solution spinor field */ 
+static spinor *eta;     /* workspace: CG source spinor field   */ 
+
+FILE *file_PP;
+const char *filename_PP_ = "PP.csv";
+char filename_PP[64];
+FILE *file_A0P;
+const char *filename_A0P_ = "A0P.csv";
+char filename_A0P[64];
+FILE *file_A1P;
+const char *filename_A1P_ = "A1P.csv";
+char filename_A1P[64];
+FILE *file_PA0;
+const char *filename_PA0_ = "PA0.csv";
+char filename_PA0[64];
+FILE *file_PA1;
+const char *filename_PA1_ = "PA1.csv";
+char filename_PA1[64];
+FILE *file_V0V0;
+const char *filename_V0V0_ = "V0V0.csv";
+char filename_V0V0[64];
+FILE *file_V0V1;
+const char *filename_V0V1_ = "V0V1.csv";
+char filename_V0V1[64];
+FILE *file_V1V0;
+const char *filename_V1V0_ = "V1V0.csv";
+char filename_V1V0[64];
+FILE *file_V1V1;
+const char *filename_V1V1_ = "V1V1.csv";
+char filename_V1V1[64];
 
 
 static void compute_2pt(){
@@ -161,7 +157,6 @@ static void compute_correlators()
         corr_V1_V1[site_index] = 2*creal(S00_S11c) + 2*creal(S01_S10c);
     }
 }
-#endif
 
 void datafile_headers(hmc_params_t *hmc_params,act_params_t *act_params)
 {
@@ -184,315 +179,277 @@ void datafile_headers(hmc_params_t *hmc_params,act_params_t *act_params)
     } else {
         bc[0] = 'P';
     }
+    bc[1] = '\0';
+    
     sprintf(data_folder, "%sT%d_L%d_%s", DATA_FOLDER, T, L, bc);
     sprintf(command, "mkdir %s", data_folder);
     system(command);
-    sprintf(data_folder, "%sT%d_L%d_%s/k%.3f_b%.3f/", DATA_FOLDER, T, L, bc, kappa, beta);
-    sprintf(study_folder, "T%d_L%d_%s/k%.3f_b%.3f/", T, L, bc, kappa, beta);
+    sprintf(data_folder, "%sT%d_L%d_%s/k%.4f_b%.3f/", DATA_FOLDER, T, L, bc, kappa, beta);
+    sprintf(study_folder, "T%d_L%d_%s/k%.4f_b%.3f/", T, L, bc, kappa, beta);
     sprintf(command, "mkdir %s", data_folder);
     system(command);
     sprintf(command, "cp ./infile_qed %s", data_folder);
     system(command);
-    sprintf(data_folder, "%sT%d_L%d_%s/k%.3f_b%.3f/%s/", DATA_FOLDER, T, L, bc, kappa, beta, "observables");
-    sprintf(plot_folder, "%sT%d_L%d_%s/k%.3f_b%.3f/%s/", DATA_FOLDER, T, L, bc, kappa, beta, "plots");
+    sprintf(data_folder, "%sT%d_L%d_%s/k%.4f_b%.3f/%s/", DATA_FOLDER, T, L, bc, kappa, beta, "observables");
+    sprintf(plot_folder, "%sT%d_L%d_%s/k%.4f_b%.3f/%s/", DATA_FOLDER, T, L, bc, kappa, beta, "plots");
     sprintf(command, "mkdir %s", data_folder);
     system(command);
     sprintf(command, "mkdir %s", plot_folder);
     system(command);
 
-    #if MEASURE_DH
-        sprintf(filename_dH, "%s%s", data_folder, filename_dH_);
-        file_dH = fopen(filename_dH, "w");
-        fprintf(file_dH, "time,dH\n");
-        fclose(file_dH);
-    #endif
-    #if MEASURE_ACC
-        sprintf(filename_acc, "%s%s", data_folder, filename_acc_);
-        file_acc = fopen(filename_acc, "w");
-        fprintf(file_acc, "time,acc\n");
-        fclose(file_acc);
-    #endif
-    #if MEASURE_PLAQ
-        sprintf(filename_plaq, "%s%s", data_folder, filename_plaq_);
-        file_plaq = fopen(filename_plaq, "w");
-        fprintf(file_plaq, "time,plaq\n");
-        fclose(file_plaq);
-    #endif
-    #if MEASURE_QTOP    
-        sprintf(filename_qtop, "%s%s", data_folder, filename_qtop_);
-        file_qtop = fopen(filename_qtop, "w");
-        fprintf(file_qtop, "time,qtop\n");
-        fclose(file_qtop);
-    #endif    
-    #if MEASURE_CORR
-        /* allocate workspace */
-        phi = malloc(2*sizeof(spinor*));
-        for (b_index=0; b_index<2; b_index++) {
-            phi[b_index] = malloc(V*sizeof(spinor));
-        }
-        eta = malloc(V*sizeof(spinor));
-        /* PP */
-        sprintf(filename_PP, "%s%s", data_folder, filename_PP_);
-        file_PP = fopen(filename_PP, "w");
-        fprintf(file_PP, "time,");
-        for (i=0; i<V; i++) { 
-            fprintf(file_PP, "%d", i);
-            if (i != V-1) { fprintf(file_PP, ",");}
-        }
-        fprintf(file_PP, "\n");
-        fclose(file_PP);
-        /* A0P */
-        sprintf(filename_A0P, "%s%s", data_folder, filename_A0P_);
-        file_A0P = fopen(filename_A0P, "w");
-        fprintf(file_A0P, "time,");
-        for (i=0; i<V; i++) { 
-            fprintf(file_A0P, "%d", i);
-            if (i != V-1) { fprintf(file_A0P, ",");}
-        }
-        fprintf(file_A0P, "\n");
-        fclose(file_A0P);
-        /* A1P */
-        sprintf(filename_A1P, "%s%s", data_folder, filename_A1P_);
-        file_A1P = fopen(filename_A1P, "w");
-        fprintf(file_A1P, "time,");
-        for (i=0; i<V; i++) { 
-            fprintf(file_A1P, "%d", i);
-            if (i != V-1) { fprintf(file_A1P, ",");}
-        }
-        fprintf(file_A1P, "\n");
-        fclose(file_A1P);
-        /* PA0 */
-        sprintf(filename_PA0, "%s%s", data_folder, filename_PA0_);
-        file_PA0 = fopen(filename_PA0, "w");
-        fprintf(file_PA0, "time,");
-        for (i=0; i<V; i++) { 
-            fprintf(file_PA0, "%d", i);
-            if (i != V-1) { fprintf(file_PA0, ",");}
-        }
-        fprintf(file_PA0, "\n");
-        fclose(file_PA0);
-        /* PA1 */
-        sprintf(filename_PA1, "%s%s", data_folder, filename_PA1_);
-        file_PA1 = fopen(filename_PA1, "w");
-        fprintf(file_PA1, "time,");
-        for (i=0; i<V; i++) { 
-            fprintf(file_PA1, "%d", i);
-            if (i != V-1) { fprintf(file_PA1, ",");}
-        }
-        fprintf(file_PA1, "\n");
-        fclose(file_PA1);
-        /* V0V0 */
-        sprintf(filename_V0V0, "%s%s", data_folder, filename_V0V0_);
-        file_V0V0 = fopen(filename_V0V0, "w");
-        fprintf(file_V0V0, "time,");
-        for (i=0; i<V; i++) { 
-            fprintf(file_V0V0, "%d", i);
-            if (i != V-1) { fprintf(file_V0V0, ",");}
-        }
-        fprintf(file_V0V0, "\n");
-        fclose(file_V0V0);
-        /* V0V1 */
-        sprintf(filename_V0V1, "%s%s", data_folder, filename_V0V1_);
-        file_V0V1 = fopen(filename_V0V1, "w");
-        fprintf(file_V0V1, "time,");
-        for (i=0; i<V; i++) { 
-            fprintf(file_V0V1, "%d", i);
-            if (i != V-1) { fprintf(file_V0V1, ",");}
-        }
-        fprintf(file_V0V1, "\n");
-        fclose(file_V0V1);
-        /* V1V0 */
-        sprintf(filename_V1V0, "%s%s", data_folder, filename_V1V0_);
-        file_V1V0 = fopen(filename_V1V0, "w");
-        fprintf(file_V1V0, "time,");
-        for (i=0; i<V; i++) { 
-            fprintf(file_V1V0, "%d", i);
-            if (i != V-1) { fprintf(file_V1V0, ",");}
-        }
-        fprintf(file_V1V0, "\n");
-        fclose(file_V1V0);
-        /* V1V1 */
-        sprintf(filename_V1V1, "%s%s", data_folder, filename_V1V1_);
-        file_V1V1 = fopen(filename_V1V1, "w");
-        fprintf(file_V1V1, "time,");
-        for (i=0; i<V; i++) { 
-            fprintf(file_V1V1, "%d", i);
-            if (i != V-1) { fprintf(file_V1V1, ",");}
-        }
-        fprintf(file_V1V1, "\n");
-        fclose(file_V1V1);
-    #endif
+    sprintf(filename_dH, "%s%s", data_folder, filename_dH_);
+    file_dH = fopen(filename_dH, "w");
+    fprintf(file_dH, "time,dH\n");
+    fclose(file_dH);
+
+    sprintf(filename_acc, "%s%s", data_folder, filename_acc_);
+    file_acc = fopen(filename_acc, "w");
+    fprintf(file_acc, "time,acc\n");
+    fclose(file_acc);
+
+    sprintf(filename_plaq, "%s%s", data_folder, filename_plaq_);
+    file_plaq = fopen(filename_plaq, "w");
+    fprintf(file_plaq, "time,plaq\n");
+    fclose(file_plaq);
+
+    sprintf(filename_qtop, "%s%s", data_folder, filename_qtop_);
+    file_qtop = fopen(filename_qtop, "w");
+    fprintf(file_qtop, "time,qtop\n");
+    fclose(file_qtop);
+
+    /* allocate workspace */
+    phi = malloc(2*sizeof(spinor*));
+    for (b_index=0; b_index<2; b_index++) {
+        phi[b_index] = malloc(V*sizeof(spinor));
+    }
+    eta = malloc(V*sizeof(spinor));
+    /* PP */
+    sprintf(filename_PP, "%s%s", data_folder, filename_PP_);
+    file_PP = fopen(filename_PP, "w");
+    fprintf(file_PP, "time,");
+    for (i=0; i<V; i++) { 
+        fprintf(file_PP, "%d", i);
+        if (i != V-1) { fprintf(file_PP, ",");}
+    }
+    fprintf(file_PP, "\n");
+    fclose(file_PP);
+    /* A0P */
+    sprintf(filename_A0P, "%s%s", data_folder, filename_A0P_);
+    file_A0P = fopen(filename_A0P, "w");
+    fprintf(file_A0P, "time,");
+    for (i=0; i<V; i++) { 
+        fprintf(file_A0P, "%d", i);
+        if (i != V-1) { fprintf(file_A0P, ",");}
+    }
+    fprintf(file_A0P, "\n");
+    fclose(file_A0P);
+    /* A1P */
+    sprintf(filename_A1P, "%s%s", data_folder, filename_A1P_);
+    file_A1P = fopen(filename_A1P, "w");
+    fprintf(file_A1P, "time,");
+    for (i=0; i<V; i++) { 
+        fprintf(file_A1P, "%d", i);
+        if (i != V-1) { fprintf(file_A1P, ",");}
+    }
+    fprintf(file_A1P, "\n");
+    fclose(file_A1P);
+    /* PA0 */
+    sprintf(filename_PA0, "%s%s", data_folder, filename_PA0_);
+    file_PA0 = fopen(filename_PA0, "w");
+    fprintf(file_PA0, "time,");
+    for (i=0; i<V; i++) { 
+        fprintf(file_PA0, "%d", i);
+        if (i != V-1) { fprintf(file_PA0, ",");}
+    }
+    fprintf(file_PA0, "\n");
+    fclose(file_PA0);
+    /* PA1 */
+    sprintf(filename_PA1, "%s%s", data_folder, filename_PA1_);
+    file_PA1 = fopen(filename_PA1, "w");
+    fprintf(file_PA1, "time,");
+    for (i=0; i<V; i++) { 
+        fprintf(file_PA1, "%d", i);
+        if (i != V-1) { fprintf(file_PA1, ",");}
+    }
+    fprintf(file_PA1, "\n");
+    fclose(file_PA1);
+    /* V0V0 */
+    sprintf(filename_V0V0, "%s%s", data_folder, filename_V0V0_);
+    file_V0V0 = fopen(filename_V0V0, "w");
+    fprintf(file_V0V0, "time,");
+    for (i=0; i<V; i++) { 
+        fprintf(file_V0V0, "%d", i);
+        if (i != V-1) { fprintf(file_V0V0, ",");}
+    }
+    fprintf(file_V0V0, "\n");
+    fclose(file_V0V0);
+    /* V0V1 */
+    sprintf(filename_V0V1, "%s%s", data_folder, filename_V0V1_);
+    file_V0V1 = fopen(filename_V0V1, "w");
+    fprintf(file_V0V1, "time,");
+    for (i=0; i<V; i++) { 
+        fprintf(file_V0V1, "%d", i);
+        if (i != V-1) { fprintf(file_V0V1, ",");}
+    }
+    fprintf(file_V0V1, "\n");
+    fclose(file_V0V1);
+    /* V1V0 */
+    sprintf(filename_V1V0, "%s%s", data_folder, filename_V1V0_);
+    file_V1V0 = fopen(filename_V1V0, "w");
+    fprintf(file_V1V0, "time,");
+    for (i=0; i<V; i++) { 
+        fprintf(file_V1V0, "%d", i);
+        if (i != V-1) { fprintf(file_V1V0, ",");}
+    }
+    fprintf(file_V1V0, "\n");
+    fclose(file_V1V0);
+    /* V1V1 */
+    sprintf(filename_V1V1, "%s%s", data_folder, filename_V1V1_);
+    file_V1V1 = fopen(filename_V1V1, "w");
+    fprintf(file_V1V1, "time,");
+    for (i=0; i<V; i++) { 
+        fprintf(file_V1V1, "%d", i);
+        if (i != V-1) { fprintf(file_V1V1, ",");}
+    }
+    fprintf(file_V1V1, "\n");
+    fclose(file_V1V1);
+
 }
 
 void measure_and_record(spinor** pf, double time, double dH, int acc)
 {
 
     int i;
-    /*
-    compute_2pt();
-    */
 
-    #if MEASURE_DH
-        file_dH = fopen(filename_dH, "a");
-        fprintf(file_dH, "%4.3e,%4.3e\n", time, dH);
-        fclose(file_dH);
-    #endif
-    #if MEASURE_ACC
-        file_acc = fopen(filename_acc, "a");
-        fprintf(file_acc, "%4.3e,%i\n", time, acc);
-        fclose(file_acc);
-    #endif
-    #if MEASURE_PLAQ
-        plaq = gauge_action(-1)/V;
-        file_plaq = fopen(filename_plaq, "a");
-        fprintf(file_plaq, "%4.3e,%4.3e\n", time, plaq);
-        fclose(file_plaq);
-    #endif
-    #if MEASURE_QTOP    
-        qtop = top_charge();
-        file_qtop = fopen(filename_qtop, "a");
-        fprintf(file_qtop, "%4.3e,%4.3e\n", time, qtop);
-        fclose(file_qtop);
-    #endif    
-    #if MEASURE_CORR
-        compute_correlators();
-        /* PP */
-        file_PP = fopen(filename_PP, "a");
-        fprintf(file_PP, "%4.3e,", time);
-        for (i=0; i<V; i++) { 
-            fprintf(file_PP, "%4.3e", corr_P__P_[i]); 
-            if (i != V-1) { fprintf(file_PP, ",");}
-        }
-        fprintf(file_PP, "\n");
-        fclose(file_PP);
-        /* A0P */
-        file_A0P = fopen(filename_A0P, "a");
-        fprintf(file_A0P, "%4.3e,", time);
-        for (i=0; i<V; i++) { 
-            fprintf(file_A0P, "%4.3e", corr_A0_P_[i]); 
-            if (i != V-1) { fprintf(file_A0P, ",");}
-        }
-        fprintf(file_A0P, "\n");
-        fclose(file_A0P);
-        /* A1P */
-        file_A1P = fopen(filename_A1P, "a");
-        fprintf(file_A1P, "%4.3e,", time);
-        for (i=0; i<V; i++) { 
-            fprintf(file_A1P, "%4.3e", corr_A1_P_[i]); 
-            if (i != V-1) { fprintf(file_A1P, ",");}
-        }
-        fprintf(file_A1P, "\n");
-        fclose(file_A1P);
-        /* PA0 */
-        file_PA0 = fopen(filename_PA0, "a");
-        fprintf(file_PA0, "%4.3e,", time);
-        for (i=0; i<V; i++) { 
-            fprintf(file_PA0, "%4.3e", corr_P__A0[i]); 
-            if (i != V-1) { fprintf(file_PA0, ",");}
-        }
-        fprintf(file_PA0, "\n");
-        fclose(file_PA0);
-        /* PA1 */
-        file_PA1 = fopen(filename_PA1, "a");
-        fprintf(file_PA1, "%4.3e,", time);
-        for (i=0; i<V; i++) { 
-            fprintf(file_PA1, "%4.3e", corr_P__A1[i]); 
-            if (i != V-1) { fprintf(file_PA1, ",");}
-        }
-        fprintf(file_PA1, "\n");
-        fclose(file_PA1);
-        /* V0V0 */
-        file_V0V0 = fopen(filename_V0V0, "a");
-        fprintf(file_V0V0, "%4.3e,", time);
-        for (i=0; i<V; i++) { 
-            fprintf(file_V0V0, "%4.3e", corr_V0_V0[i]); 
-            if (i != V-1) { fprintf(file_V0V0, ",");}
-        }
-        fprintf(file_V0V0, "\n");
-        fclose(file_V0V0);
-        /* V0V1 */
-        file_V0V1 = fopen(filename_V0V1, "a");
-        fprintf(file_V0V1, "%4.3e,", time);
-        for (i=0; i<V; i++) { 
-            fprintf(file_V0V1, "%4.3e", corr_V0_V1[i]); 
-            if (i != V-1) { fprintf(file_V0V1, ",");}
-        }
-        fprintf(file_V0V1, "\n");
-        fclose(file_V0V1);
-        /* V1V0 */
-        file_V1V0 = fopen(filename_V1V0, "a");
-        fprintf(file_V1V0, "%4.3e,", time);
-        for (i=0; i<V; i++) { 
-            fprintf(file_V1V0, "%4.3e", corr_V1_V0[i]); 
-            if (i != V-1) { fprintf(file_V1V0, ",");}
-        }
-        fprintf(file_V1V0, "\n");
-        fclose(file_V1V0);
-        /* V1V1 */
-        file_V1V1 = fopen(filename_V1V1, "a");
-        fprintf(file_V1V1, "%4.3e,", time);
-        for (i=0; i<V; i++) { 
-            fprintf(file_V1V1, "%4.3e", corr_V1_V1[i]); 
-            if (i != V-1) { fprintf(file_V1V1, ",");}
-        }
-        fprintf(file_V1V1, "\n");
-        fclose(file_V1V1);
-    #endif
+    file_dH = fopen(filename_dH, "a");
+    fprintf(file_dH, "%4.3e,%4.3e\n", time, dH);
+    fclose(file_dH);
+
+    file_acc = fopen(filename_acc, "a");
+    fprintf(file_acc, "%4.3e,%i\n", time, acc);
+    fclose(file_acc);
+
+    plaq = gauge_action(-1)/V;
+    file_plaq = fopen(filename_plaq, "a");
+    fprintf(file_plaq, "%4.3e,%4.3e\n", time, plaq);
+    fclose(file_plaq);
+
+    qtop = top_charge();
+    file_qtop = fopen(filename_qtop, "a");
+    fprintf(file_qtop, "%4.3e,%4.3e\n", time, qtop);
+    fclose(file_qtop);
+
+    compute_correlators();
+    /* PP */
+    file_PP = fopen(filename_PP, "a");
+    fprintf(file_PP, "%4.3e,", time);
+    for (i=0; i<V; i++) { 
+        fprintf(file_PP, "%4.3e", corr_P__P_[i]); 
+        if (i != V-1) { fprintf(file_PP, ",");}
+    }
+    fprintf(file_PP, "\n");
+    fclose(file_PP);
+    /* A0P */
+    file_A0P = fopen(filename_A0P, "a");
+    fprintf(file_A0P, "%4.3e,", time);
+    for (i=0; i<V; i++) { 
+        fprintf(file_A0P, "%4.3e", corr_A0_P_[i]); 
+        if (i != V-1) { fprintf(file_A0P, ",");}
+    }
+    fprintf(file_A0P, "\n");
+    fclose(file_A0P);
+    /* A1P */
+    file_A1P = fopen(filename_A1P, "a");
+    fprintf(file_A1P, "%4.3e,", time);
+    for (i=0; i<V; i++) { 
+        fprintf(file_A1P, "%4.3e", corr_A1_P_[i]); 
+        if (i != V-1) { fprintf(file_A1P, ",");}
+    }
+    fprintf(file_A1P, "\n");
+    fclose(file_A1P);
+    /* PA0 */
+    file_PA0 = fopen(filename_PA0, "a");
+    fprintf(file_PA0, "%4.3e,", time);
+    for (i=0; i<V; i++) { 
+        fprintf(file_PA0, "%4.3e", corr_P__A0[i]); 
+        if (i != V-1) { fprintf(file_PA0, ",");}
+    }
+    fprintf(file_PA0, "\n");
+    fclose(file_PA0);
+    /* PA1 */
+    file_PA1 = fopen(filename_PA1, "a");
+    fprintf(file_PA1, "%4.3e,", time);
+    for (i=0; i<V; i++) { 
+        fprintf(file_PA1, "%4.3e", corr_P__A1[i]); 
+        if (i != V-1) { fprintf(file_PA1, ",");}
+    }
+    fprintf(file_PA1, "\n");
+    fclose(file_PA1);
+    /* V0V0 */
+    file_V0V0 = fopen(filename_V0V0, "a");
+    fprintf(file_V0V0, "%4.3e,", time);
+    for (i=0; i<V; i++) { 
+        fprintf(file_V0V0, "%4.3e", corr_V0_V0[i]); 
+        if (i != V-1) { fprintf(file_V0V0, ",");}
+    }
+    fprintf(file_V0V0, "\n");
+    fclose(file_V0V0);
+    /* V0V1 */
+    file_V0V1 = fopen(filename_V0V1, "a");
+    fprintf(file_V0V1, "%4.3e,", time);
+    for (i=0; i<V; i++) { 
+        fprintf(file_V0V1, "%4.3e", corr_V0_V1[i]); 
+        if (i != V-1) { fprintf(file_V0V1, ",");}
+    }
+    fprintf(file_V0V1, "\n");
+    fclose(file_V0V1);
+    /* V1V0 */
+    file_V1V0 = fopen(filename_V1V0, "a");
+    fprintf(file_V1V0, "%4.3e,", time);
+    for (i=0; i<V; i++) { 
+        fprintf(file_V1V0, "%4.3e", corr_V1_V0[i]); 
+        if (i != V-1) { fprintf(file_V1V0, ",");}
+    }
+    fprintf(file_V1V0, "\n");
+    fclose(file_V1V0);
+    /* V1V1 */
+    file_V1V1 = fopen(filename_V1V1, "a");
+    fprintf(file_V1V1, "%4.3e,", time);
+    for (i=0; i<V; i++) { 
+        fprintf(file_V1V1, "%4.3e", corr_V1_V1[i]); 
+        if (i != V-1) { fprintf(file_V1V1, ",");}
+    }
+    fprintf(file_V1V1, "\n");
+    fclose(file_V1V1);
 }
 
 void run_plot_scripts()
 {
-    char *c_dH = "";
-    char *c_acc = "";
-    char *c_plaq = "";
-    char *c_qtop = "";
-    char *c_corr = "";
     char command[256];
     int out;
-    #if MEASURE_DH
-        c_dH = "dH";
-    #endif
-    #if MEASURE_ACC
-        c_acc = "acc";
-    #endif
-    #if MEASURE_PLAQ
-        c_plaq = "plaq";
-    #endif
-    #if MEASURE_QTOP
-        c_qtop = "qtop";
-    #endif
-    #if MEASURE_CORR
-        c_corr = "corr";
-    #endif
-
-    /* sprintf(command, "cd ../results/data_analysis/ && python3 plot.py %i %i %4.3e %4.3e %s %s %s %s", T, L, kappa, beta, c_dH, c_acc, c_plaq, c_qtop); */
+    
     sprintf(command, "cd ../studies/ && python3 plot.py %s", study_folder);
     out = system("");
     out = system(command);
     if (out == 0){
         printf("plotting of general observables successful\n");
     }
-
-    /* printf(command, "cd ../results/data_analysis/ && python3 plot_corr.py %i %i 0", T, L); */
     sprintf(command, "cd ../studies/ && python3 plot_corr.py %s", study_folder);
     out = system("");
     out = system(command);
     if (out == 0){
         printf("plotting of correlators successful\n");
     }
-
     sprintf(command, "cd ../studies/ && python3 pcac_mass.py %s", study_folder);
     out = system("");
     out = system(command);
     if (out == 0){
         printf("plotting of PCAC mass successful\n");
     }
-
     sprintf(command, "cd ../studies/ && python3 pion_mass.py %s", study_folder);
     out = system("");
     out = system(command);
     if (out == 0){
         printf("plotting of pion mass successful\n");
     }
-    
 }

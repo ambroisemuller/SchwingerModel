@@ -3,15 +3,6 @@
 
 #include "schwinger.h"
 
-/* Standard */
-#define MEASURE_DH      1
-#define MEASURE_ACC     1
-#define MEASURE_PLAQ    1
-#define MEASURE_QTOP    1
-
-/*  Correlators */
-#define MEASURE_CORR    1
-
 #define DATA_FOLDER     "../studies/"
 
 /* measurements.c */

@@ -16,8 +16,12 @@ idxT = folder.find("T")
 idx_ = folder.find("_")
 idxL = folder.find("L")
 idx__ = folder.find("/")
-T = int(folder[idxT+1:idx_])-1      # remove -1
-L = int(folder[idxL+1:idx__-2])-1   # remove -1
+T = int(folder[idxT+1:idx_])-2      # remove -2
+L = int(folder[idxL+1:idx__-2])-2   # remove -2
+
+sum_axis = 2
+dim_sum = L if sum_axis == 1 else T
+other = T if sum_axis == 1 else L
 
 if __name__=="__main__":
      # find pion mass
@@ -26,54 +30,57 @@ if __name__=="__main__":
     time = df.iloc[:, 0].values
     number_of_time_values = len(time)
     df = df.drop(df.columns[0], axis=1)
-    if df.shape[1] != (T+1) * (L+1): # remove +1
+    if df.shape[1] != (T+2) * (L+2): # remove +2
         raise ValueError("The number of elements in the CSV does not match number_of_time_values * T * L")
-    reshaped_array = df.values.reshape(number_of_time_values, T+1, L+1) # remove +1 
-    reshaped_array = reshaped_array[:,1:,1:] # remove line
-    summed_over_x = np.sum(reshaped_array, axis=2)
-    average_summed_over_x = np.mean(summed_over_x[ntherm:, :], axis=0)
-    # print(average_summed_over_x)
-    std_summed_over_x = np.std(summed_over_x[ntherm:, :], axis=0)/np.sqrt(summed_over_x.shape[0]-ntherm)
+    reshaped_array = df.values.reshape(number_of_time_values, T+2, L+2) # remove +2
+    reshaped_array = reshaped_array[:,1:-1,1:-1] # remove line
+
+    #  generate ensemble of means using jackknife
+    jackknife_means = reshaped_array.copy()[ntherm:, :, :]
+    for i in range(jackknife_means.shape[0]):
+        jackknife_means[i,:,:] = (np.sum(jackknife_means[:i,:,:], axis=0) + np.sum(jackknife_means[i+1:,:,:], axis=0))/(jackknife_means.shape[0]-1)
+    summed_jackknife_means = np.sum(jackknife_means, axis=sum_axis)
+    summed_jackknife_mean_avg = np.mean(summed_jackknife_means, axis=0)
+    summed_jackknife_mean_std = np.std(summed_jackknife_means, axis=0)
+
     fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(15, 4))
-    ax1.errorbar(np.arange(T), average_summed_over_x, 3*std_summed_over_x, fmt='.-', color='black', capsize=2)
+    ax1.errorbar(np.arange(dim_sum), summed_jackknife_mean_avg, 3*summed_jackknife_mean_std, fmt='.-', color='black', capsize=2)
     ax1.set_yscale('log')
     ax1.set_title(r'$< $P(t)  P(0)$ >$')
 
     # LOG
 
-    meff = summed_over_x.copy()
-    meff[:, :-1] /= summed_over_x[:, 1:]
-    meff[:, -1] /= summed_over_x[:, 0]
+    meff = summed_jackknife_means.copy()
+    meff[:, :-1] /= summed_jackknife_means[:, 1:]
+    meff[:, -1] /= summed_jackknife_means[:, 0]
     meff = np.log(meff)
-    meff_avg = np.mean(meff[ntherm:, :], axis=0)
-    meff_std = np.std(meff[ntherm:, :], axis=0)/np.sqrt(meff.shape[0]-ntherm)
-    ax2.errorbar(np.arange(T)+0.5, meff_avg, 3*meff_std, fmt='.-', color='black', capsize=2)
-    ax2.plot(np.arange(0, T//2), np.ones(T//2)*4.7/L, '--', color='blue')
-    ax2.plot(np.arange(T//2, T), -np.ones(T-T//2)*4.7/L, '--', color='blue')
+    meff_avg = np.mean(meff, axis=0)
+    meff_std = np.std(meff, axis=0)*np.sqrt((meff.shape[0]-1)/meff.shape[0])
+    ax2.errorbar(np.arange(dim_sum)+0.5, meff_avg, 3*meff_std, fmt='.-', color='black', capsize=2)
+    ax2.plot(np.arange(0, dim_sum//2), np.ones(dim_sum//2)*4.7/dim_sum, '--', color='blue')
+    ax2.plot(np.arange(dim_sum//2, dim_sum), -np.ones(dim_sum-dim_sum//2)*4.7/dim_sum, '--', color='blue')
     ax2.set_title(r'effective mass (log)')
 
     # COSH solution
     
-    meff = summed_over_x.copy()
+    meff = summed_jackknife_means.copy()
     m0 = 1
     def equation_to_solve(m_eff, n_t, N_T, c_ratio):
         return c_ratio * np.cosh(m_eff * ((n_t + 1)//N_T - N_T/2)) - np.cosh(m_eff * (n_t - N_T/2))
-    for sample in range(number_of_time_values):
-        C_pp = summed_over_x[sample, :]
-        for i in range(T):
-            # print(sample)
+    for sample in range(summed_jackknife_means.shape[0]):
+        C_pp = summed_jackknife_means[sample, :]
+        for i in range(dim_sum):
             n_t_val = i
-            N_T_val = T
-            R_val = C_pp[i]/C_pp[(i+1)//T]
+            N_T_val = dim_sum
+            R_val = C_pp[i]/C_pp[(i+1)//dim_sum]
             m_eff_guess = 2
             m_eff_solution = fsolve(equation_to_solve, m_eff_guess, args=(n_t_val, N_T_val, R_val))
             meff[sample][i] = m_eff_solution
-
-    meff_avg = np.mean(meff[ntherm:, :], axis=0)
-    meff_std = np.std(meff[ntherm:, :], axis=0)/np.sqrt(meff.shape[0]-ntherm)
-    ax3.errorbar(np.arange(T)[1:]-0.5, meff_avg[1:], 3*meff_std[1:], fmt='.-', color='black', capsize=2)
-    # ax3.set_ylim(0, 0.5)
-    ax3.plot(np.arange(T), np.ones(T)*4.7/L, '--', color='blue')
+    meff[:,-1] = meff[:, 1]
+    meff_avg = np.mean(meff, axis=0)
+    meff_std = np.std(meff, axis=0)*np.sqrt((meff.shape[0]-1)/meff.shape[0])
+    ax3.errorbar(np.arange(dim_sum)[1:]-0.5, meff_avg[1:], 3*meff_std[1:], fmt='.-', color='black', capsize=2)
+    ax3.plot(np.arange(dim_sum), np.ones(dim_sum)*4.7/dim_sum, '--', color='blue')
     ax3.set_title(r'effective mass (cosh solution)')
 
 
