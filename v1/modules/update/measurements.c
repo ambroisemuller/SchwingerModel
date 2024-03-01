@@ -41,6 +41,7 @@ double corr_V1_V1[V];   /*  < V_1(x) V_1(0) >   */
 
 static spinor **phi;    /* workspace: CG solution spinor field */ 
 static spinor *eta;     /* workspace: CG source spinor field   */ 
+static spinor *temp;
 
 FILE *file_PP;
 const char *filename_PP_ = "PP.csv";
@@ -119,17 +120,18 @@ static void compute_correlators()
     /* initialize */
     double mu = mus[0]; 
     int b_index, site_index;                            /* Spin and lattice indices     */
-    int zero_index = 0;                     /* middle of lattice     L*(T/2) + L/2       */
+    int zero_index = 0;                                 /* middle of lattice     L*(T/2) + L/2       */
     complex double S00_S11c, S01_S10c, S00_S01c, S10_S11c, S00_S10c, S01_S11c;
 
     /* compute S(x, 0) */
     for (b_index=0; b_index<2; b_index++) {
         zero_spinor(phi[b_index]);                      /* Initialize solution to 0     */
         zero_spinor(eta);                               /* Initialize source to 0       */
+        zero_spinor(temp);
         (eta[zero_index]).s[b_index] = 1.;              /* Set source to dirac delta    */
         gamma5(eta);                                    /* Apply gamma5 to source       */
-        cg(eta, phi[b_index], kappa, mu, eps, nmax);    /* Solve the dirac equation     */
-        dirac(phi[b_index], phi[b_index], kappa, mu);   /* Apply Dirac operator         */
+        cg(eta, temp, kappa, mu, eps, nmax);            /* Solve the dirac equation     */
+        dirac(temp, phi[b_index], kappa, mu);           /* Apply Dirac operator         */
         gamma5(phi[b_index]);                           /* Apply gamma5 to solution     */
     }
 
@@ -223,6 +225,7 @@ void datafile_headers(hmc_params_t *hmc_params,act_params_t *act_params)
         phi[b_index] = malloc(V*sizeof(spinor));
     }
     eta = malloc(V*sizeof(spinor));
+    temp = malloc(V*sizeof(spinor));
     /* PP */
     sprintf(filename_PP, "%s%s", data_folder, filename_PP_);
     file_PP = fopen(filename_PP, "w");

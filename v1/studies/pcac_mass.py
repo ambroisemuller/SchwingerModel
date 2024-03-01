@@ -16,8 +16,8 @@ idxT = folder.find("T")
 idx_ = folder.find("_")
 idxL = folder.find("L")
 idx__ = folder.find("/")
-T = int(folder[idxT+1:idx_])-2      # remove -1
-L = int(folder[idxL+1:idx__-2])-2   # remove -1
+T = int(folder[idxT+1:idx_])-0      # remove -2
+L = int(folder[idxL+1:idx__-2])-0   # remove -2
 
 sum_axis = 2
 dim_sum = L if sum_axis == 1 else T
@@ -29,10 +29,10 @@ df = pd.read_csv(filename)
 time = df.iloc[:, 0].values
 number_of_time_values = len(time)
 df = df.drop(df.columns[0], axis=1)
-if df.shape[1] != (T+2) * (L+2): # remove +1
+if df.shape[1] != (T+0) * (L+0): # remove +2
     raise ValueError("The number of elements in the CSV does not match number_of_time_values * T * L")
-reshaped_array = df.values.reshape(number_of_time_values, T+2, L+2) # remove +1
-reshaped_array = reshaped_array[:,1:-1,1:-1] # remove line
+reshaped_array = df.values.reshape(number_of_time_values, T+0, L+0) # remove +2
+reshaped_array = reshaped_array[:,:,:] # remove line
 
 #  generate ensemble of PP means using jackknife
 PP_jackknife_means = reshaped_array.copy()[ntherm:, :, :]
@@ -47,17 +47,17 @@ df = pd.read_csv(filename)
 time = df.iloc[:, 0].values
 number_of_time_values = len(time)
 df = df.drop(df.columns[0], axis=1)
-if df.shape[1] != (T+2) * (L+2): # remove +1
+if df.shape[1] != (T+0) * (L+0): # remove +1
     raise ValueError("The number of elements in the CSV does not match number_of_time_values * T * L")
-reshaped_array = df.values.reshape(number_of_time_values, T+2, L+2) # remove +1
-reshaped_array = reshaped_array[:,1:-1,1:-1] # remove line
+reshaped_array = df.values.reshape(number_of_time_values, T+0, L+0) # remove +1
+reshaped_array = reshaped_array[:,:,:] # remove line
 
 #  generate ensemble of AP means using jackknife
 AP_jackknife_means = reshaped_array.copy()[ntherm:, :, :]
 for i in range(AP_jackknife_means.shape[0]):
     AP_jackknife_means[i,:,:] = (np.sum(AP_jackknife_means[:i,:,:], axis=0) + np.sum(AP_jackknife_means[i+1:,:,:], axis=0))/(AP_jackknife_means.shape[0]-1)
+# np.random.shuffle(AP_jackknife_means)
 AP_summed_jackknife_means = np.sum(AP_jackknife_means, axis=sum_axis)
-np.random.shuffle(AP_jackknife_means)
 AP_summed_jackknife_mean_avg = np.mean(AP_summed_jackknife_means, axis=0)
 AP_summed_jackknife_mean_std = np.std(AP_summed_jackknife_means, axis=0)*np.sqrt((AP_jackknife_means.shape[0]-1)/AP_jackknife_means.shape[0])
 
@@ -71,26 +71,34 @@ d_AP_summed_jackknife_means[:,-1] = 0.5*(AP_summed_jackknife_means[:,0] - AP_sum
 d_AP_summed_jackknife_mean_avg = np.mean(d_AP_summed_jackknife_means, axis=0)
 d_AP_summed_jackknife_mean_std = np.std(d_AP_summed_jackknife_means, axis=0)*np.sqrt((d_AP_summed_jackknife_means.shape[0]-1)/d_AP_summed_jackknife_means.shape[0])
 
+n_samples = min(d_AP_summed_jackknife_means.shape[0], PP_summed_jackknife_means.shape[0])
+n_sites = d_AP_summed_jackknife_means.shape[1]
+
 # quotient
-quotient_samples = 0.5*np.abs(d_AP_summed_jackknife_means)/PP_summed_jackknife_means
+quotient_samples = np.zeros((n_samples**2, n_sites))
+for i in range(n_samples):
+    quotient_samples[i*n_samples:(i+1)*n_samples] = 0.5*np.tile(d_AP_summed_jackknife_means[i], n_samples).reshape(n_samples, n_sites)/PP_summed_jackknife_means[:n_samples]
+
+# quotient_samples = 0.5*(d_AP_summed_jackknife_means)/PP_summed_jackknife_means
 quotient_avg = np.mean(quotient_samples, axis=0)
 quotient_std = np.std(quotient_samples, axis=0)*np.sqrt((quotient_samples.shape[0]-1)/quotient_samples.shape[0])
 
 
 
-fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(12, 8))
-ax1.errorbar(np.arange(dim_sum), AP_summed_jackknife_mean_avg, 3*AP_summed_jackknife_mean_std, fmt='.-', color='black', capsize=2)
-ax1.set_yscale('log')
-ax1.set_title(r"$\sum_t$ < $P(t, x) \ A_1(0, 0)$ >")
-ax2.errorbar(np.arange(dim_sum), (d_AP_summed_jackknife_mean_avg), 3*d_AP_summed_jackknife_mean_std, fmt='.-', color='black', capsize=2)
-# ax2.set_yscale('log')
-ax2.set_title(r"$\sum_t$ $\partial_t$ < $P(t, x) \ A_1(0, 0)$ >")
-ax3.errorbar(np.arange(dim_sum), np.abs(d_AP_summed_jackknife_mean_avg), 3*d_AP_summed_jackknife_mean_std, fmt='.-', color='black', capsize=2)
+fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(10, 6))
+ax1.errorbar(np.arange(dim_sum)[1:], AP_summed_jackknife_mean_avg[1:], 3*AP_summed_jackknife_mean_std[1:], fmt='.-', color='black', capsize=2)
+# ax1.set_yscale('log')
+ax1.set_title(r"$\sum_x \langle P(t, x) \ A_1(0, 0) \rangle$")
+ax2.errorbar(np.arange(dim_sum)[1:], PP_summed_jackknife_mean_avg[1:], 3*PP_summed_jackknife_mean_std[1:], fmt='.-', color='black', capsize=2)
+ax2.set_yscale('log')
+ax2.set_title(r"$\sum_x \langle P(t, x) \ P(0, 0) \rangle $")
+ax3.errorbar(np.arange(dim_sum)[2:-1], (d_AP_summed_jackknife_mean_avg)[2:-1], 3*d_AP_summed_jackknife_mean_std[2:-1], fmt='.-', color='black', capsize=2)
 ax3.set_yscale('log')
-ax3.set_title(r"|$\partial_x$ $\sum_t$ < $P(t, x) \ A_1(0, 0)$ >|")
-ax4.errorbar(np.arange(dim_sum), quotient_avg, 3*quotient_std, fmt='.-', color='black', capsize=2)
-ax4.plot(np.arange(dim_sum), np.ones(dim_sum)*(1.1/dim_sum), '--', color='blue')
-ax4.set_title(r" |$\partial_x$ $\sum_t$ < $P(t, x) \ A_1(0, 0)$ >| / (2 $\sum_t$ < $P(t, x) \ P(0, 0)$ >)")
+ax3.set_title(r" $\partial_t \sum_x \langle P(t, x) \ A_1(0, 0) \rangle $")
+ax4.errorbar(np.arange(dim_sum)[2:-1], other*quotient_avg[2:-1], other*3*quotient_std[2:-1], fmt='.-', color='black', capsize=2)
+ax4.plot(np.arange(dim_sum), np.ones(dim_sum)*(1.0), '--', color='blue')
+ax4.set_title(r" $m_{PCAC} \cdot L = L \times \frac{1}{2} \frac{\partial_t \sum_x \langle P(t, x) \ A_1(0, 0) \rangle}{\sum_x \langle P(t, x) \ P(0, 0) \rangle}$")
+fig.tight_layout()
 fig.savefig(f'{plot_folder}pcac_mass.png')
 
 

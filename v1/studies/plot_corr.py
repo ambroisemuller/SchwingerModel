@@ -64,10 +64,12 @@ def plot_correlator(corr, title, log_plot):
     ax0.set_xlabel('t')
     ax0.set_ylabel('x')
     ax1.errorbar(np.arange(L), summed_over_0_avg, 3*summed_over_0_std, color='black', fmt='.-', capsize=2)
+    ax1.errorbar(np.arange(L)+1, summed_over_0_avg[::-1], 3*summed_over_0_std[::-1], color='black', fmt='.:', capsize=2)
     if log_plot:
         ax1.set_yscale('log')
     ax1.set_xlabel('x')
     ax2.errorbar(np.arange(T), summed_over_1_avg, 3*summed_over_1_std, color='black', fmt='.-', capsize=2)
+    ax2.errorbar(np.arange(T)+1, summed_over_1_avg[::-1], 3*summed_over_1_std[::-1], color='black', fmt='.:', capsize=2)
     if log_plot:
         ax2.set_yscale('log')
     ax2.set_xlabel('t')
@@ -118,14 +120,14 @@ def plot_correlator(corr, title, log_plot):
     # fig.savefig(f"{plot_folder}{corr}.png")
 
 if __name__=="__main__":
+    plot_correlator("PP", r"$\langle \ P (t, x) \ P (0, 0) \ \rangle$", True)
     plot_correlator("V0V0", r"$\langle \ J_0 (t, x) \ J_0 (0, 0) \ \rangle$", True)
     plot_correlator("V0V1", r"$\langle \ J_0 (t, x) \ J_1 (0, 0) \ \rangle$", False)
     plot_correlator("V1V0", r"$\langle \ J_1 (t, x) \ J_0 (0, 0) \ \rangle$", False)
     plot_correlator("V1V1", r"$\langle \ J_1 (t, x) \ J_1 (0, 0) \ \rangle$", True)
     plot_correlator("A0P", r"$\langle \ A_0 (t, x) \ P (0, 0) \ \rangle$", False)
     plot_correlator("A1P", r"$\langle \ A_1 (t, x) \ P (0, 0) \ \rangle$", False)
-    plot_correlator("PA0", r"$\langle \ P (t, x) \ A_0 (0, 0) \ \rangle$", True)
-    plot_correlator("PA1", r"$\langle \ P (t, x) \ A_1 (0, 0) \ \rangle$", True)
-    plot_correlator("PP", r"$\langle \ P (t, x) \ P (0, 0) \ \rangle$", True)
+    plot_correlator("PA0", r"$\langle \ P (t, x) \ A_0 (0, 0) \ \rangle$", False)
+    plot_correlator("PA1", r"$\langle \ P (t, x) \ A_1 (0, 0) \ \rangle$", False)
 
     # print("re-run and exclude thermalization trajectories in averages with\npython plot_corr.py %d %d ${ N_THERM }" % (T, L))

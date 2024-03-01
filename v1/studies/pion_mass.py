@@ -16,8 +16,8 @@ idxT = folder.find("T")
 idx_ = folder.find("_")
 idxL = folder.find("L")
 idx__ = folder.find("/")
-T = int(folder[idxT+1:idx_])-2      # remove -2
-L = int(folder[idxL+1:idx__-2])-2   # remove -2
+T = int(folder[idxT+1:idx_])-0      # remove -1
+L = int(folder[idxL+1:idx__-2])-0   # remove -1
 
 sum_axis = 2
 dim_sum = L if sum_axis == 1 else T
@@ -30,10 +30,10 @@ if __name__=="__main__":
     time = df.iloc[:, 0].values
     number_of_time_values = len(time)
     df = df.drop(df.columns[0], axis=1)
-    if df.shape[1] != (T+2) * (L+2): # remove +2
+    if df.shape[1] != (T+0) * (L+0): # remove +1
         raise ValueError("The number of elements in the CSV does not match number_of_time_values * T * L")
-    reshaped_array = df.values.reshape(number_of_time_values, T+2, L+2) # remove +2
-    reshaped_array = reshaped_array[:,1:-1,1:-1] # remove line
+    reshaped_array = df.values.reshape(number_of_time_values, T+0, L+0) # remove +1
+    reshaped_array = reshaped_array[:,0:,0:] # remove line
 
     #  generate ensemble of means using jackknife
     jackknife_means = reshaped_array.copy()[ntherm:, :, :]
@@ -46,7 +46,7 @@ if __name__=="__main__":
     fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(15, 4))
     ax1.errorbar(np.arange(dim_sum), summed_jackknife_mean_avg, 3*summed_jackknife_mean_std, fmt='.-', color='black', capsize=2)
     ax1.set_yscale('log')
-    ax1.set_title(r'$< $P(t)  P(0)$ >$')
+    ax1.set_title(r'$\langle P(t)  P(0) \rangle$')
 
     # LOG
 
@@ -56,10 +56,11 @@ if __name__=="__main__":
     meff = np.log(meff)
     meff_avg = np.mean(meff, axis=0)
     meff_std = np.std(meff, axis=0)*np.sqrt((meff.shape[0]-1)/meff.shape[0])
-    ax2.errorbar(np.arange(dim_sum)+0.5, meff_avg, 3*meff_std, fmt='.-', color='black', capsize=2)
-    ax2.plot(np.arange(0, dim_sum//2), np.ones(dim_sum//2)*4.7/dim_sum, '--', color='blue')
-    ax2.plot(np.arange(dim_sum//2, dim_sum), -np.ones(dim_sum-dim_sum//2)*4.7/dim_sum, '--', color='blue')
-    ax2.set_title(r'effective mass (log)')
+    ax2.errorbar(np.arange(dim_sum)+0.5, other*np.abs(meff_avg), other*3*meff_std, fmt='.-', color='black', capsize=2)
+    # ax2.plot(np.arange(0, dim_sum//2), np.ones(dim_sum//2)*4.7/other, '--', color='blue')
+    # ax2.plot(np.arange(dim_sum//2, dim_sum), -np.ones(dim_sum-dim_sum//2)*4.7/other, '--', color='blue')
+    ax2.plot(np.arange(dim_sum)+0.5, np.ones(dim_sum)*4.7, '--', color='blue')
+    ax2.set_title(r'$m_{\pi} \dot L = L \times \left| \log \frac{\langle P(t)  P(0) \rangle}{\langle P(t+a)  P(0) \rangle} \right|$')
 
     # COSH solution
     
@@ -79,9 +80,11 @@ if __name__=="__main__":
     meff[:,-1] = meff[:, 1]
     meff_avg = np.mean(meff, axis=0)
     meff_std = np.std(meff, axis=0)*np.sqrt((meff.shape[0]-1)/meff.shape[0])
-    ax3.errorbar(np.arange(dim_sum)[1:]-0.5, meff_avg[1:], 3*meff_std[1:], fmt='.-', color='black', capsize=2)
-    ax3.plot(np.arange(dim_sum), np.ones(dim_sum)*4.7/dim_sum, '--', color='blue')
+    ax3.errorbar(np.arange(dim_sum)[1:]-0.5, other*meff_avg[1:], other*3*meff_std[1:], fmt='.-', color='black', capsize=2)
+    ax3.plot(np.arange(dim_sum), np.ones(dim_sum)*4.7, '--', color='blue')
     ax3.set_title(r'effective mass (cosh solution)')
 
+    print(meff_avg)
+    print(meff_std)
 
     fig.savefig(f'{plot_folder}pion_mass.png')
