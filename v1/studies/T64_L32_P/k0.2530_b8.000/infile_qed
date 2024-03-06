@@ -1,7 +1,7 @@
 kappa       0.253
 beta        8
 ntherm      0
-ntraj       100
+ntraj       5000
 subtraj     1
 traj_length 1
 nstep       60

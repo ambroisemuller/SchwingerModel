@@ -64,27 +64,39 @@ if __name__=="__main__":
 
     # COSH solution
     
-    meff = summed_jackknife_means.copy()
+    meff = np.zeros((summed_jackknife_means.shape[0], summed_jackknife_means.shape[1]))
     m0 = 1
-    def equation_to_solve(m_eff, n_t, N_T, c_ratio):
-        return c_ratio * np.cosh(m_eff * ((n_t + 1)//N_T - N_T/2)) - np.cosh(m_eff * (n_t - N_T/2))
+
+    print(summed_jackknife_means.shape)
+
     for sample in range(summed_jackknife_means.shape[0]):
-        C_pp = summed_jackknife_means[sample, :]
-        for i in range(dim_sum):
-            n_t_val = i
-            N_T_val = dim_sum
-            R_val = C_pp[i]/C_pp[(i+1)//dim_sum]
-            m_eff_guess = 2
-            m_eff_solution = fsolve(equation_to_solve, m_eff_guess, args=(n_t_val, N_T_val, R_val))
-            meff[sample][i] = m_eff_solution
-    meff[:,-1] = meff[:, 1]
+        for i in range(summed_jackknife_means.shape[1]):
+            C_i = summed_jackknife_means[sample, i%dim_sum]
+            C_ip1 = summed_jackknife_means[sample, (i+1)%dim_sum]
+            def eq(m_):
+                return C_i/C_ip1 - np.cosh(m_*((i-(dim_sum)/2)))/np.cosh(m_*((i+1-(dim_sum)/2)))
+            meff[sample, i] = np.abs(fsolve(eq, m0))
+
+    # def equation_to_solve(m_eff, n_t, N_T, c_ratio):
+    #     return c_ratio * np.cosh(m_eff * ((n_t + 1)//N_T - N_T/2)) - np.cosh(m_eff * (n_t - N_T/2))
+    # for sample in range(summed_jackknife_means.shape[0]):
+    #     C_pp = summed_jackknife_means[sample, :]
+    #     for i in range(dim_sum):
+    #         n_t_val = i
+    #         N_T_val = dim_sum
+    #         R_val = C_pp[i]/C_pp[(i+1)//dim_sum]
+    #         m_eff_guess = 2
+    #         m_eff_solution = fsolve(equation_to_solve, m_eff_guess, args=(n_t_val, N_T_val, R_val))
+    #         meff[sample][i] = m_eff_solution
+    # meff[:,-1] = meff[:, 1]
     meff_avg = np.mean(meff, axis=0)
     meff_std = np.std(meff, axis=0)*np.sqrt((meff.shape[0]-1)/meff.shape[0])
-    ax3.errorbar(np.arange(dim_sum)[1:]-0.5, other*meff_avg[1:], other*3*meff_std[1:], fmt='.-', color='black', capsize=2)
+    # ax3.errorbar(np.arange(dim_sum)[1:]-0.5, other*meff_avg[1:], other*3*meff_std[1:], fmt='.-', color='black', capsize=2)
+    ax3.errorbar(np.arange(dim_sum), (other*meff_avg), other*3*meff_std, fmt='.-', color='black', capsize=2)
     ax3.plot(np.arange(dim_sum), np.ones(dim_sum)*4.7, '--', color='blue')
     ax3.set_title(r'effective mass (cosh solution)')
 
-    print(meff_avg)
-    print(meff_std)
+    # print(meff_avg)
+    # print(meff_std)
 
     fig.savefig(f'{plot_folder}pion_mass.png')
