@@ -19,7 +19,7 @@ idx__ = folder.find("/")
 T = int(folder[idxT+1:idx_])-0      # remove -1
 L = int(folder[idxL+1:idx__-2])-0   # remove -1
 
-sum_axis = 2
+sum_axis = 1
 dim_sum = L if sum_axis == 1 else T
 other = T if sum_axis == 1 else L
 

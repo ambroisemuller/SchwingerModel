@@ -24,10 +24,10 @@ void hopping(int hop[V][2*D])
    for (i=0; i<V; i++){
       x = i % L;
       t = i / L;
-      hop[i][0] = t*L + ((x+1) % L);
-      hop[i][1] = ((t+1) % T)*L + x;
-      hop[i][2] = t*L + ((x-1+L) % L);
-      hop[i][3] = ((t-1+T) % T)*L + x;
+      hop[i][1] = t*L + ((x+1) % L);
+      hop[i][0] = ((t+1) % T)*L + x;
+      hop[i][3] = t*L + ((x-1+L) % L);
+      hop[i][2] = ((t-1+T) % T)*L + x;
 
    }
 }

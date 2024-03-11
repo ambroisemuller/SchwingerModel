@@ -80,7 +80,7 @@ void dirac(spinor *s,spinor *r,double kappa,double mu)
          if (nu<D) /* forward hopping*/
          {
             
-            if (nu == 1 && (ix/L == T-1) && !PERIODIC){
+            if (nu == 0 && (ix/L == T-1) && !PERIODIC){
                phase = PI;
             } else{
                phase = 0;
@@ -92,7 +92,7 @@ void dirac(spinor *s,spinor *r,double kappa,double mu)
          else     /*backward hopping*/
          {
             
-            if (nu == D+1 && (ix/L == 0) && !PERIODIC){
+            if (nu == D && (ix/L == 0) && !PERIODIC){
                phase = PI;
             } else{
                phase = 0;

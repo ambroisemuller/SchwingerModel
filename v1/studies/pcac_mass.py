@@ -42,7 +42,7 @@ PP_summed_jackknife_means = np.sum(PP_jackknife_means, axis=sum_axis)
 PP_summed_jackknife_mean_avg = np.mean(PP_summed_jackknife_means, axis=0)
 PP_summed_jackknife_mean_std = np.std(PP_summed_jackknife_means, axis=0)*np.sqrt((PP_jackknife_means.shape[0]-1)/PP_jackknife_means.shape[0])
 
-filename = f"{data_folder}PA1.csv"
+filename = f"{data_folder}A0P.csv"
 df = pd.read_csv(filename)
 time = df.iloc[:, 0].values
 number_of_time_values = len(time)
