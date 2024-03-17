@@ -62,3 +62,4 @@ if __name__=="__main__":
     plot_file = f"{plot_folder}general.png"
     fig.savefig(plot_file)
     # print("General observable plots saved to " + plot_file)
+    plt.close(fig)

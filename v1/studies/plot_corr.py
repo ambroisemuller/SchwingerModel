@@ -75,6 +75,7 @@ def plot_correlator(corr, title, log_plot):
     ax2.set_xlabel('t')
     
     fig.savefig(f"{plot_folder}{corr}.png")
+    plt.close(fig)
 
 
 

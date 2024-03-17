@@ -199,6 +199,9 @@ void datafile_headers(hmc_params_t *hmc_params,act_params_t *act_params)
     sprintf(command, "mkdir %s", plot_folder);
     system(command);
 
+    printf(data_folder);
+    printf(plot_folder);
+
     sprintf(filename_dH, "%s%s", data_folder, filename_dH_);
     file_dH = fopen(filename_dH, "w");
     fprintf(file_dH, "time,dH\n");
@@ -324,9 +327,13 @@ void measure_and_record(spinor** pf, double time, double dH, int acc)
 
     int i;
 
+    printf(filename_dH);
+
     file_dH = fopen(filename_dH, "a");
     fprintf(file_dH, "%4.3e,%4.3e\n", time, dH);
     fclose(file_dH);
+
+    printf(filename_acc);
 
     file_acc = fopen(filename_acc, "a");
     fprintf(file_acc, "%4.3e,%i\n", time, acc);

@@ -16,10 +16,10 @@ idxT = folder.find("T")
 idx_ = folder.find("_")
 idxL = folder.find("L")
 idx__ = folder.find("/")
-T = int(folder[idxT+1:idx_])-0      # remove -1
-L = int(folder[idxL+1:idx__-2])-0   # remove -1
+T = int(folder[idxT+1:idx_])
+L = int(folder[idxL+1:idx__-2])
 
-sum_axis = 1
+sum_axis = 2
 dim_sum = L if sum_axis == 1 else T
 other = T if sum_axis == 1 else L
 
@@ -30,10 +30,9 @@ if __name__=="__main__":
     time = df.iloc[:, 0].values
     number_of_time_values = len(time)
     df = df.drop(df.columns[0], axis=1)
-    if df.shape[1] != (T+0) * (L+0): # remove +1
+    if df.shape[1] != T*L:
         raise ValueError("The number of elements in the CSV does not match number_of_time_values * T * L")
-    reshaped_array = df.values.reshape(number_of_time_values, T+0, L+0) # remove +1
-    reshaped_array = reshaped_array[:,0:,0:] # remove line
+    reshaped_array = df.values.reshape(number_of_time_values, T, L)
 
     #  generate ensemble of means using jackknife
     jackknife_means = reshaped_array.copy()[ntherm:, :, :]
@@ -56,7 +55,7 @@ if __name__=="__main__":
     meff = np.log(meff)
     meff_avg = np.mean(meff, axis=0)
     meff_std = np.std(meff, axis=0)*np.sqrt((meff.shape[0]-1)/meff.shape[0])
-    ax2.errorbar(np.arange(dim_sum)+0.5, other*np.abs(meff_avg), other*3*meff_std, fmt='.-', color='black', capsize=2)
+    ax2.errorbar(np.arange(dim_sum)+0.5, L*np.abs(meff_avg), L*3*meff_std, fmt='.-', color='black', capsize=2)
     # ax2.plot(np.arange(0, dim_sum//2), np.ones(dim_sum//2)*4.7/other, '--', color='blue')
     # ax2.plot(np.arange(dim_sum//2, dim_sum), -np.ones(dim_sum-dim_sum//2)*4.7/other, '--', color='blue')
     ax2.plot(np.arange(dim_sum)+0.5, np.ones(dim_sum)*4.7, '--', color='blue')
@@ -67,8 +66,6 @@ if __name__=="__main__":
     meff = np.zeros((summed_jackknife_means.shape[0], summed_jackknife_means.shape[1]))
     m0 = 1
 
-    print(summed_jackknife_means.shape)
-
     for sample in range(summed_jackknife_means.shape[0]):
         for i in range(summed_jackknife_means.shape[1]):
             C_i = summed_jackknife_means[sample, i%dim_sum]
@@ -77,26 +74,29 @@ if __name__=="__main__":
                 return C_i/C_ip1 - np.cosh(m_*((i-(dim_sum)/2)))/np.cosh(m_*((i+1-(dim_sum)/2)))
             meff[sample, i] = np.abs(fsolve(eq, m0))
 
-    # def equation_to_solve(m_eff, n_t, N_T, c_ratio):
-    #     return c_ratio * np.cosh(m_eff * ((n_t + 1)//N_T - N_T/2)) - np.cosh(m_eff * (n_t - N_T/2))
-    # for sample in range(summed_jackknife_means.shape[0]):
-    #     C_pp = summed_jackknife_means[sample, :]
-    #     for i in range(dim_sum):
-    #         n_t_val = i
-    #         N_T_val = dim_sum
-    #         R_val = C_pp[i]/C_pp[(i+1)//dim_sum]
-    #         m_eff_guess = 2
-    #         m_eff_solution = fsolve(equation_to_solve, m_eff_guess, args=(n_t_val, N_T_val, R_val))
-    #         meff[sample][i] = m_eff_solution
-    # meff[:,-1] = meff[:, 1]
-    meff_avg = np.mean(meff, axis=0)
-    meff_std = np.std(meff, axis=0)*np.sqrt((meff.shape[0]-1)/meff.shape[0])
-    # ax3.errorbar(np.arange(dim_sum)[1:]-0.5, other*meff_avg[1:], other*3*meff_std[1:], fmt='.-', color='black', capsize=2)
-    ax3.errorbar(np.arange(dim_sum), (other*meff_avg), other*3*meff_std, fmt='.-', color='black', capsize=2)
-    ax3.plot(np.arange(dim_sum), np.ones(dim_sum)*4.7, '--', color='blue')
-    ax3.set_title(r'effective mass (cosh solution)')
+    meff_avg = np.mean(meff, axis=0)*L
+    meff_std = np.std(meff, axis=0)*np.sqrt((meff.shape[0]-1)/meff.shape[0])*L*3
 
-    # print(meff_avg)
-    # print(meff_std)
+    ax3.errorbar(np.arange(dim_sum), meff_avg, meff_std, fmt='.-', color='black', capsize=2)
+    ax3.plot(np.arange(dim_sum), np.ones(dim_sum)*4.7, '--', color='blue')
+
+    plateau_region1 = np.arange(int(np.round(0.1*dim_sum)), int(np.round(0.4*dim_sum)+1))
+    plateau_region2 = np.arange(int(np.round(0.6*dim_sum)), int(np.round(0.9*dim_sum)+1))
+    plateau_indices = np.concatenate((plateau_region1, plateau_region2))
+    x_plateau = np.arange(dim_sum)[plateau_indices]
+    y_plateau = meff_avg[plateau_indices]
+    yerr_plateau = meff_std[plateau_indices]
+    jackknife_means = np.array([np.mean(np.delete(y_plateau, i)) for i in range(len(y_plateau))])
+    jackknife_estimate = np.mean(jackknife_means)
+    n = len(y_plateau)
+    jackknife_error = np.sqrt((n-1)/n * np.sum((jackknife_means - jackknife_estimate)**2))*3
+    
+    ax3.plot(plateau_region1, jackknife_estimate*np.ones_like(plateau_region1), color='r', linestyle='--', label=r'$m_{eff} = %.3f \pm %.3f$' % (jackknife_estimate, jackknife_error))
+    ax3.plot(plateau_region2, jackknife_estimate*np.ones_like(plateau_region2), color='r', linestyle='--')
+    ax3.fill_between(plateau_region1, jackknife_estimate - jackknife_error, jackknife_estimate + jackknife_error, color='red', alpha=0.3)
+    ax3.fill_between(plateau_region2, jackknife_estimate - jackknife_error, jackknife_estimate + jackknife_error, color='red', alpha=0.3)
+    ax3.set_title(r'effective mass (cosh solution)')
+    ax3.legend()
 
     fig.savefig(f'{plot_folder}pion_mass.png')
+    plt.close(fig)
