@@ -29,6 +29,11 @@ FILE *file_qtop;
 const char *filename_qtop_ = "qtop.csv";
 char filename_qtop[64];
 
+double condensate;
+FILE *file_condensate;
+const char *filename_condensate_ = "condensate.csv";
+char filename_condensate[64];
+
 double corr_P__P_[V];   /*  < P(x) P(0) >       */
 double corr_A0_P_[V];   /*  < A_0(x) P(0) >     */
 double corr_A1_P_[V];   /*  < A_1(x) P(0) >     */
@@ -133,7 +138,10 @@ static void compute_correlators()
         cg(eta, temp, kappa, mu, eps, nmax);            /* Solve the dirac equation     */
         dirac(temp, phi[b_index], kappa, mu);           /* Apply Dirac operator         */
         gamma5(phi[b_index]);                           /* Apply gamma5 to solution     */
-    }
+    };
+
+    /* fermion condensate */
+    condensate = creal(phi[0][zero_index].s[0] + phi[1][site_index].s[1]); 
 
     /* measure correlators */
     for (site_index = 0; site_index < V; site_index++) {
@@ -221,6 +229,11 @@ void datafile_headers(hmc_params_t *hmc_params,act_params_t *act_params)
     file_qtop = fopen(filename_qtop, "w");
     fprintf(file_qtop, "time,qtop\n");
     fclose(file_qtop);
+
+    sprintf(filename_condensate, "%s%s", data_folder, filename_condensate_);
+    file_condensate = fopen(filename_condensate, "w");
+    fprintf(file_condensate, "time,condensate\n");
+    fclose(file_condensate);
 
     /* allocate workspace */
     phi = malloc(2*sizeof(spinor*));
@@ -322,7 +335,7 @@ void datafile_headers(hmc_params_t *hmc_params,act_params_t *act_params)
 
 }
 
-void measure_and_record(spinor** pf, double time, double dH, int acc)
+void measure_and_record(spinor** pf, double time, double dH, double acc)
 {
 
     int i;
@@ -336,7 +349,7 @@ void measure_and_record(spinor** pf, double time, double dH, int acc)
     printf(filename_acc);
 
     file_acc = fopen(filename_acc, "a");
-    fprintf(file_acc, "%4.3e,%i\n", time, acc);
+    fprintf(file_acc, "%4.3e,%4.3e\n", time, acc);
     fclose(file_acc);
 
     plaq = gauge_action(-1)/V;
@@ -350,6 +363,11 @@ void measure_and_record(spinor** pf, double time, double dH, int acc)
     fclose(file_qtop);
 
     compute_correlators();
+
+    file_condensate = fopen(filename_condensate, "a");
+    fprintf(file_condensate, "%4.3e,%4.3e\n", time, condensate);
+    fclose(file_condensate);
+
     /* PP */
     file_PP = fopen(filename_PP, "a");
     fprintf(file_PP, "%4.3e,", time);

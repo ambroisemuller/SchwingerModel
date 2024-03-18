@@ -405,7 +405,7 @@ void reversibility(hmc_params_t *hmc_params,act_params_t *act_params)
 double hmc(hmc_params_t *hmc_params,act_params_t *act_params)
 {
    int itraj,isubtraj,accept,acc,i,nstep;
-   double H1,H2,dH,r;
+   double H1,H2,dH,r,acc_avg;
    double tau,lambda;
    double gauge_old[V][D];
 
@@ -438,6 +438,7 @@ double hmc(hmc_params_t *hmc_params,act_params_t *act_params)
 
    for (itraj=0;itraj<hmc_params->ntraj;itraj++)
    {
+      acc_avg = 0;
 
       for (isubtraj=0; isubtraj<hmc_params->subtraj;isubtraj++)
       {
@@ -474,10 +475,11 @@ double hmc(hmc_params_t *hmc_params,act_params_t *act_params)
          printf("traj %d  subtraj %d  dH %+4.3e  acc %d\n", itraj, isubtraj, dH, acc);
          fflush(stdout);
          accept+=acc;
+         acc_avg += (double)acc/((double)hmc_params->subtraj);
       }
 
       printf("measuring correlators...\n");
-      measure_and_record(pf, itraj*tau*(double)hmc_params->subtraj, dH, acc);
+      measure_and_record(pf, itraj*tau*(double)hmc_params->subtraj, dH, acc_avg);
 
       fflush(stdout);
       

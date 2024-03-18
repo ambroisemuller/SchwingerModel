@@ -3,6 +3,9 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
 import sys;
+import matplotlib as mpl
+mpl.rcParams['font.family'] = 'STIXGeneral'
+mpl.rcParams['font.size'] = 12
 
 if __name__=="__main__":
 
@@ -21,6 +24,11 @@ if __name__=="__main__":
     data_plaq = {col: df_plaq[col].values for col in df_plaq.columns}
     df_qtop = pd.read_csv(f"{data_folder}qtop.csv")
     data_qtop = {col: df_qtop[col].values for col in df_qtop.columns}
+    try:
+        df_condensate = pd.read_csv(f"{data_folder}condensate.csv")
+        data_condensate = {col: df_condensate[col].values for col in df_condensate.columns}
+    except:
+        pass
 
     t = data_dH['time']
     dH = data_dH['dH']
@@ -30,6 +38,10 @@ if __name__=="__main__":
     plaq = data_plaq['plaq']
     t = data_qtop['time']
     qtop = data_qtop['qtop']
+    try:
+        condensate = data_condensate['condensate']
+    except:
+        pass
 
     fig, ((ax_dH, ax_acc), (ax_plaq, ax_qtop)) = plt.subplots(2, 2, figsize=(12, 6))
     
@@ -63,3 +75,17 @@ if __name__=="__main__":
     fig.savefig(plot_file)
     # print("General observable plots saved to " + plot_file)
     plt.close(fig)
+
+    try:
+        fig_cond, ax_cond = plt.subplots(1, 1, figsize=(12, 3))
+        ax_cond.plot(t, condensate, '.-', label='Lattice measurements')
+        ax_cond.plot(t[ntherm:], [np.mean(condensate[ntherm:]) for _ in t[ntherm:]], '--', label="avg %f\nstd %f"%(np.mean(condensate[ntherm:]), np.std(condensate[ntherm:])))
+        ax_cond.set_xlabel(r"Simulation time $\tau$")
+        ax_cond.set_ylabel(r"Chiral fermion condensate")
+        ax_cond.legend()
+        fig_cond.tight_layout()
+        fig_cond.savefig(f"{plot_folder}condensate.png")
+        plt.close(fig_cond)
+    except:
+        pass
+    

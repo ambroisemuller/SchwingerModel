@@ -4,6 +4,9 @@ import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
 from scipy.optimize import fsolve
 import sys
+import matplotlib as mpl
+mpl.rcParams['font.family'] = 'STIXGeneral'
+mpl.rcParams['font.size'] = 12
 
 args = sys.argv
 
@@ -19,7 +22,7 @@ idx__ = folder.find("/")
 T = int(folder[idxT+1:idx_])
 L = int(folder[idxL+1:idx__-2])
 
-sum_axis = 2
+sum_axis = 1
 dim_sum = L if sum_axis == 1 else T
 other = T if sum_axis == 1 else L
 
@@ -42,24 +45,25 @@ if __name__=="__main__":
     summed_jackknife_mean_avg = np.mean(summed_jackknife_means, axis=0)
     summed_jackknife_mean_std = np.std(summed_jackknife_means, axis=0)
 
-    fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(15, 4))
+    fig, (ax1, ax3) = plt.subplots(1, 2, figsize=(12, 4))
     ax1.errorbar(np.arange(dim_sum), summed_jackknife_mean_avg, 3*summed_jackknife_mean_std, fmt='.-', color='black', capsize=2)
     ax1.set_yscale('log')
     ax1.set_title(r'$\langle P(t)  P(0) \rangle$')
 
     # LOG
 
-    meff = summed_jackknife_means.copy()
-    meff[:, :-1] /= summed_jackknife_means[:, 1:]
-    meff[:, -1] /= summed_jackknife_means[:, 0]
-    meff = np.log(meff)
-    meff_avg = np.mean(meff, axis=0)
-    meff_std = np.std(meff, axis=0)*np.sqrt((meff.shape[0]-1)/meff.shape[0])
-    ax2.errorbar(np.arange(dim_sum)+0.5, L*np.abs(meff_avg), L*3*meff_std, fmt='.-', color='black', capsize=2)
-    # ax2.plot(np.arange(0, dim_sum//2), np.ones(dim_sum//2)*4.7/other, '--', color='blue')
-    # ax2.plot(np.arange(dim_sum//2, dim_sum), -np.ones(dim_sum-dim_sum//2)*4.7/other, '--', color='blue')
-    ax2.plot(np.arange(dim_sum)+0.5, np.ones(dim_sum)*4.7, '--', color='blue')
-    ax2.set_title(r'$m_{\pi} \dot L = L \times \left| \log \frac{\langle P(t)  P(0) \rangle}{\langle P(t+a)  P(0) \rangle} \right|$')
+    # meff = summed_jackknife_means.copy()
+    # meff[:, :-1] /= summed_jackknife_means[:, 1:]
+    # meff[:, -1] /= summed_jackknife_means[:, 0]
+    # meff = np.log(meff)
+    # meff_avg = np.mean(meff, axis=0)
+    # meff_std = np.std(meff, axis=0)*np.sqrt((meff.shape[0]-1)/meff.shape[0])
+
+    # ax2.errorbar(np.arange(dim_sum)+0.5, L*np.abs(meff_avg), L*3*meff_std, fmt='.-', color='black', capsize=2)
+    # # ax2.plot(np.arange(0, dim_sum//2), np.ones(dim_sum//2)*4.7/other, '--', color='blue')
+    # # ax2.plot(np.arange(dim_sum//2, dim_sum), -np.ones(dim_sum-dim_sum//2)*4.7/other, '--', color='blue')
+    # ax2.plot(np.arange(dim_sum)+0.5, np.ones(dim_sum)*4.7, '--', color='blue')
+    # ax2.set_title(r'$m_{\pi} \dot L = L \times \left| \log \frac{\langle P(t)  P(0) \rangle}{\langle P(t+a)  P(0) \rangle} \right|$')
 
     # COSH solution
     

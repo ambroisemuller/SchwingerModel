@@ -7,7 +7,6 @@ import os
 import subprocess
 import sys
 import matplotlib as mpl
-# Set STIX fonts
 mpl.rcParams['font.family'] = 'STIXGeneral'
 mpl.rcParams['font.size'] = 12
 from pcac_mass import plot_pcac_mass
@@ -18,6 +17,9 @@ errors = []
 
 args = sys.argv
 t_folder = args[1]
+
+ntherm = int(args[2]) if len(args) > 2 else 0
+
 base_path = os.getcwd()
 t_dir_path = os.path.join(base_path, t_folder)
 for subitem in os.listdir(t_dir_path):
@@ -44,7 +46,6 @@ for subitem in os.listdir(t_dir_path):
         beta = float(subitem[idxb+1:idx__-2])
 
         sum_axis = 2
-        ntherm = 100
 
         m_pcac, err = plot_pcac_mass(T, L, data_folder, plot_folder, ntherm, sum_axis, True)
 

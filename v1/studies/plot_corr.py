@@ -3,6 +3,9 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
 import sys;
+import matplotlib as mpl
+mpl.rcParams['font.family'] = 'STIXGeneral'
+mpl.rcParams['font.size'] = 12
 
 args = sys.argv
 
