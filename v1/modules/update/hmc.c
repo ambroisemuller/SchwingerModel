@@ -472,7 +472,7 @@ double hmc(hmc_params_t *hmc_params,act_params_t *act_params)
             else
                assign_link(gauge_old,gauge);
          }  
-         printf("traj %d  subtraj %d  dH %+4.3e  acc %d\n", itraj, isubtraj, dH, acc);
+         /* printf("traj %d  subtraj %d  dH %+4.3e  acc %d\n", itraj, isubtraj, dH, acc); */
          fflush(stdout);
          accept+=acc;
          acc_avg += (double)acc/((double)hmc_params->subtraj);

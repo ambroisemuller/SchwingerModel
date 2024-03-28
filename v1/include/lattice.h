@@ -4,9 +4,9 @@
 /* Dimension of the lattice */
 #define D 2
 /* spatial extent of the lattice */
-#define L 48
+#define L 24
 /* temporal extent of the lattice */
-#define T 96
+#define T 24
 /* lattice volume, needs to be adjusted according to number of dimensions*/
 #define V (L*T)
 

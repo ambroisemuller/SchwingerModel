@@ -2,6 +2,7 @@
 #include "update.h"
 #include "linalg.h"
 #include "dirac.h"
+#include <stdlib.h>
 
 double kappa, beta, eps, res_act, res_frc;
 double *mus;
@@ -123,49 +124,90 @@ static void compute_2pt(){
 static void compute_correlators()
 {
     /* initialize */
-    double mu = mus[0]; 
+    double mu = mus[0]; /* or just 0? */
     int b_index, site_index;                            /* Spin and lattice indices     */
-    int zero_index = 0;                                 /* middle of lattice     L*(T/2) + L/2       */
     complex double S00_S11c, S01_S10c, S00_S01c, S10_S11c, S00_S10c, S01_S11c;
-
-    /* compute S(x, 0) */
-    for (b_index=0; b_index<2; b_index++) {
-        zero_spinor(phi[b_index]);                      /* Initialize solution to 0     */
-        zero_spinor(eta);                               /* Initialize source to 0       */
-        zero_spinor(temp);
-        (eta[zero_index]).s[b_index] = 1.;              /* Set source to dirac delta    */
-        gamma5(eta);                                    /* Apply gamma5 to source       */
-        cg(eta, temp, kappa, mu, eps, nmax);            /* Solve the dirac equation     */
-        dirac(temp, phi[b_index], kappa, mu);           /* Apply Dirac operator         */
-        gamma5(phi[b_index]);                           /* Apply gamma5 to solution     */
-    };
-
-    /* fermion condensate */
-    condensate = creal(phi[0][zero_index].s[0] + phi[1][site_index].s[1]); 
-
-    /* measure correlators */
+    int zero_index, x_index, t_index;                   /* zero = 0, otherwise middle of lattice     L*(T/2) + L/2       */
+    int x, t, actual_x_index, actual_t_index, actual_index;           /* workspace */
+    int sample_index;
+    
+    /* zero all global variables */
+    condensate = 0;
+    
     for (site_index = 0; site_index < V; site_index++) {
-        corr_P__P_[site_index] = creal(
-            phi[0][site_index].s[0] * conj(phi[0][site_index].s[0])
-            + phi[0][site_index].s[1] * conj(phi[0][site_index].s[1])
-            + phi[1][site_index].s[0] * conj(phi[1][site_index].s[0])
-            + phi[1][site_index].s[1] * conj(phi[1][site_index].s[1])
-        );
-        S00_S01c = phi[0][site_index].s[0] * conj(phi[1][site_index].s[0]);
-        S10_S11c = phi[0][site_index].s[1] * conj(phi[1][site_index].s[1]);
-        S00_S10c = phi[0][site_index].s[0] * conj(phi[0][site_index].s[1]);
-        S01_S11c = phi[1][site_index].s[0] * conj(phi[1][site_index].s[1]);
-        corr_A0_P_[site_index] = 2*creal(S00_S01c + S10_S11c); 
-        corr_A1_P_[site_index] = 2*cimag(S00_S01c + S10_S11c);
-        corr_P__A0[site_index] = - 2*creal(S00_S10c + S01_S11c);
-        corr_P__A1[site_index] = 2*cimag(S00_S10c + S01_S11c);
-        S00_S11c = phi[0][site_index].s[0] * conj(phi[1][site_index].s[1]);
-        S01_S10c = phi[1][site_index].s[0] * conj(phi[0][site_index].s[1]);
-        corr_V0_V0[site_index] = 2*creal(S00_S11c) - 2*creal(S01_S10c);
-        corr_V0_V1[site_index] = - 2*cimag(S00_S11c) + 2*cimag(S01_S10c);
-        corr_V1_V0[site_index] = 2*cimag(S00_S11c) + 2*cimag(S01_S10c);
-        corr_V1_V1[site_index] = 2*creal(S00_S11c) + 2*creal(S01_S10c);
+        corr_P__P_[site_index] = 0;
+        corr_A0_P_[site_index] = 0; 
+        corr_A1_P_[site_index] = 0;
+        corr_P__A0[site_index] = 0;
+        corr_P__A1[site_index] = 0;
+        corr_V0_V0[site_index] = 0;
+        corr_V0_V1[site_index] = 0;
+        corr_V1_V0[site_index] = 0;
+        corr_V1_V1[site_index] = 0;
     }
+
+    for (sample_index=0; sample_index<CORR_SAMPLES; sample_index++)
+    {
+        t_index = rand()%T;
+        x_index = rand()%L;
+        zero_index = t_index*L + x_index;
+
+        printf("(%d, %d)", t_index, x_index);
+
+        /* compute S(x, 0) */
+        for (b_index=0; b_index<2; b_index++) {
+            zero_spinor(phi[b_index]);                      /* Initialize solution to 0     */
+            zero_spinor(eta);                               /* Initialize source to 0       */
+            zero_spinor(temp);
+            (eta[zero_index]).s[b_index] = 1.;              /* Set source to dirac delta    */
+            gamma5(eta);                                    /* Apply gamma5 to source       */
+            cg(eta, temp, kappa, mu, eps, nmax);            /* Solve the dirac equation     */
+            dirac(temp, phi[b_index], kappa, mu);           /* Apply Dirac operator         */
+            gamma5(phi[b_index]);                           /* Apply gamma5 to solution     */
+        };
+
+        /* fermion condensate */
+        condensate = creal(phi[0][zero_index].s[0] + phi[1][site_index].s[1]); 
+
+        /* measure correlators */
+        for (site_index = 0; site_index < V; site_index++) 
+        {
+            
+            t = site_index / L;
+            x = site_index % L;
+            actual_t_index = (t-t_index+T)%T;
+            actual_x_index = (x-x_index+L)%L;
+            actual_index = actual_t_index*L + actual_x_index;
+
+            corr_P__P_[actual_index] += creal(
+                phi[0][site_index].s[0] * conj(phi[0][site_index].s[0])
+                + phi[0][site_index].s[1] * conj(phi[0][site_index].s[1])
+                + phi[1][site_index].s[0] * conj(phi[1][site_index].s[0])
+                + phi[1][site_index].s[1] * conj(phi[1][site_index].s[1])
+            )/((double)(CORR_SAMPLES));
+        
+            S00_S01c = phi[0][site_index].s[0] * conj(phi[1][site_index].s[0]);
+            S10_S11c = phi[0][site_index].s[1] * conj(phi[1][site_index].s[1]);
+            S00_S10c = phi[0][site_index].s[0] * conj(phi[0][site_index].s[1]);
+            S01_S11c = phi[1][site_index].s[0] * conj(phi[1][site_index].s[1]);
+
+            corr_A0_P_[actual_index] += (2*creal(S00_S01c + S10_S11c))/((double)(CORR_SAMPLES)); 
+            corr_A1_P_[actual_index] += (2*cimag(S00_S01c + S10_S11c))/((double)(CORR_SAMPLES));
+            corr_P__A0[actual_index] += (- 2*creal(S00_S10c + S01_S11c))/((double)(CORR_SAMPLES));
+            corr_P__A1[actual_index] += (2*cimag(S00_S10c + S01_S11c))/((double)(CORR_SAMPLES));
+
+            S00_S11c = phi[0][site_index].s[0] * conj(phi[1][site_index].s[1]);
+            S01_S10c = phi[1][site_index].s[0] * conj(phi[0][site_index].s[1]);
+
+            corr_V0_V0[actual_index] += (2*creal(S00_S11c) - 2*creal(S01_S10c))/((double)(CORR_SAMPLES));
+            corr_V0_V1[actual_index] += (- 2*cimag(S00_S11c) + 2*cimag(S01_S10c))/((double)(CORR_SAMPLES));
+            corr_V1_V0[actual_index] += (2*cimag(S00_S11c) + 2*cimag(S01_S10c))/((double)(CORR_SAMPLES));
+            corr_V1_V1[actual_index] += (2*creal(S00_S11c) + 2*creal(S01_S10c))/((double)(CORR_SAMPLES));
+            
+        }
+    }
+    printf("\n");
+
 }
 
 void datafile_headers(hmc_params_t *hmc_params,act_params_t *act_params)
@@ -340,13 +382,9 @@ void measure_and_record(spinor** pf, double time, double dH, double acc)
 
     int i;
 
-    printf(filename_dH);
-
     file_dH = fopen(filename_dH, "a");
     fprintf(file_dH, "%4.3e,%4.3e\n", time, dH);
     fclose(file_dH);
-
-    printf(filename_acc);
 
     file_acc = fopen(filename_acc, "a");
     fprintf(file_acc, "%4.3e,%4.3e\n", time, acc);

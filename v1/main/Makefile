@@ -57,7 +57,7 @@ LIBPATH =
 
 # scheduling and optimization options (such as -DSSE -DSSE2 -DP4)
  
-CFLAGS = -std=c89 -pedantic -fstrict-aliasing \
+CFLAGS = -std=c89 -pedantic -fstrict-aliasing -fopenmp \ # 
          -Wall -Wno-long-long  -O # -DMDINT_DBG -Werror
  
 

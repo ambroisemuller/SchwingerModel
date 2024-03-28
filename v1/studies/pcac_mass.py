@@ -8,22 +8,6 @@ import matplotlib as mpl
 mpl.rcParams['font.family'] = 'STIXGeneral'
 mpl.rcParams['font.size'] = 12
 
-args = sys.argv
-
-folder = args[1]
-data_folder = folder+"observables/"
-plot_folder = folder+"plots/"
-ntherm = int(args[2]) if len(args) > 2 else 0
-
-idxT = folder.find("T")
-idx_ = folder.find("_")
-idxL = folder.find("L")
-idx__ = folder.find("/")
-T = int(folder[idxT+1:idx_])
-L = int(folder[idxL+1:idx__-2])
-
-sum_axis = 1
-
 def plot_pcac_mass(T, L, data_folder, plot_folder, ntherm, sum_axis, plot=False):
 
     dim_sum = L if sum_axis == 1 else T
@@ -46,7 +30,7 @@ def plot_pcac_mass(T, L, data_folder, plot_folder, ntherm, sum_axis, plot=False)
     PP_summed_jackknife_mean_avg = np.mean(PP_summed_jackknife_means, axis=0)
     PP_summed_jackknife_mean_std = np.std(PP_summed_jackknife_means, axis=0)*np.sqrt((PP_jackknife_means.shape[0]-1)/PP_jackknife_means.shape[0])
 
-    filename = f"{data_folder}PA1.csv"
+    filename = f"{data_folder}PA{'1' if sum_axis==1 else '0'}.csv"
     df = pd.read_csv(filename)
     time = df.iloc[:, 0].values
     number_of_time_values = len(time)
@@ -55,7 +39,7 @@ def plot_pcac_mass(T, L, data_folder, plot_folder, ntherm, sum_axis, plot=False)
         raise ValueError("The number of elements in the CSV does not match number_of_time_values * T * L")
     reshaped_array1 = df.values.reshape(number_of_time_values, T, L) 
 
-    filename = f"{data_folder}A1P.csv"
+    filename = f"{data_folder}A{'1' if sum_axis==1 else '0'}P.csv"
     df = pd.read_csv(filename)
     time = df.iloc[:, 0].values
     number_of_time_values = len(time)
@@ -96,7 +80,7 @@ def plot_pcac_mass(T, L, data_folder, plot_folder, ntherm, sum_axis, plot=False)
     quotient_avg = np.mean(quotient_samples, axis=0)*L
     quotient_std = np.std(quotient_samples, axis=0)*np.sqrt((quotient_samples.shape[0]-1)/quotient_samples.shape[0])*L*3
 
-    plateau_indices = np.arange(int(np.round(0.125*dim_sum)), int(np.round(0.875*dim_sum)+1))
+    plateau_indices = np.arange(int(np.ceil(0.2*dim_sum)), int(np.floor(0.8*dim_sum)+1))
     x_plateau = np.arange(dim_sum)[plateau_indices]
     y_plateau = quotient_avg[plateau_indices]
     yerr_plateau = quotient_std[plateau_indices]
@@ -118,7 +102,7 @@ def plot_pcac_mass(T, L, data_folder, plot_folder, ntherm, sum_axis, plot=False)
     ax3.set_yscale('log')
     ax3.set_title(r" $\partial_t \sum_x \langle P(t, x) \ A_0(0, 0) - A_0(t, x) \ P(0, 0) \rangle $")
     ax4.errorbar(np.arange(dim_sum)[2:-1], quotient_avg[2:-1], quotient_std[2:-1], fmt='.-', color='black', capsize=2)
-    ax4.plot(np.arange(dim_sum), np.ones(dim_sum)*(1.0), '--', color='blue')
+    ax4.plot(np.arange(dim_sum)[2:-1], np.ones(dim_sum)[2:-1]*(1.0), '--', color='blue')
     ax4.plot(plateau_indices, weighted_mean*np.ones_like(plateau_indices), color='r', linestyle='--', label=r'$m_{PCAC} = %.3f \pm %.3f$' % (weighted_mean, error_weighted_mean))
     ax4.fill_between(plateau_indices, weighted_mean - error_weighted_mean, weighted_mean + error_weighted_mean, color='red', alpha=0.3)
     ax4.set_title(r" $m_{PCAC} \cdot L = L \times \frac{1}{2} \frac{\partial_t \sum_x \langle P(t, x) \ A_0(0, 0) - A_0(t, x) \ P(0, 0) \rangle}{\sum_x \langle P(t, x) \ P(0, 0) \rangle}$")
@@ -130,4 +114,20 @@ def plot_pcac_mass(T, L, data_folder, plot_folder, ntherm, sum_axis, plot=False)
     return weighted_mean, error_weighted_mean
 
 if __name__=="__main__":
+    args = sys.argv
+
+    folder = args[1]
+    data_folder = folder+"observables/"
+    plot_folder = folder+"plots/"
+    ntherm = int(args[2]) if len(args) > 2 else 0
+
+    idxT = folder.find("T")
+    idx_ = folder.find("_")
+    idxL = folder.find("L")
+    idx__ = folder.find("/")
+    T = int(folder[idxT+1:idx_])
+    L = int(folder[idxL+1:idx__-2])
+
+    sum_axis = 1
+
     plot_pcac_mass(T, L, data_folder, plot_folder, ntherm, sum_axis, plot=True)

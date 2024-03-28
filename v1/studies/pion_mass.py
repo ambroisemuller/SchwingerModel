@@ -8,26 +8,13 @@ import matplotlib as mpl
 mpl.rcParams['font.family'] = 'STIXGeneral'
 mpl.rcParams['font.size'] = 12
 
-args = sys.argv
 
-folder = args[1]
-data_folder = folder+"observables/"
-plot_folder = folder+"plots/"
-ntherm = int(args[2]) if len(args) > 2 else 0
+def plot_pion_mass(T, L, data_folder, plot_folder, ntherm, sum_axis, plot=False):
 
-idxT = folder.find("T")
-idx_ = folder.find("_")
-idxL = folder.find("L")
-idx__ = folder.find("/")
-T = int(folder[idxT+1:idx_])
-L = int(folder[idxL+1:idx__-2])
-
-sum_axis = 1
-dim_sum = L if sum_axis == 1 else T
-other = T if sum_axis == 1 else L
-
-if __name__=="__main__":
      # find pion mass
+    dim_sum = L if sum_axis == 1 else T
+    other = T if sum_axis == 1 else L
+
     filename = f"{data_folder}PP.csv"
     df = pd.read_csv(filename)
     time = df.iloc[:, 0].values
@@ -84,8 +71,8 @@ if __name__=="__main__":
     ax3.errorbar(np.arange(dim_sum), meff_avg, meff_std, fmt='.-', color='black', capsize=2)
     ax3.plot(np.arange(dim_sum), np.ones(dim_sum)*4.7, '--', color='blue')
 
-    plateau_region1 = np.arange(int(np.round(0.1*dim_sum)), int(np.round(0.4*dim_sum)+1))
-    plateau_region2 = np.arange(int(np.round(0.6*dim_sum)), int(np.round(0.9*dim_sum)+1))
+    plateau_region1 = np.arange(int(np.floor(0.15*dim_sum)), int(np.floor(0.4*dim_sum)+1))
+    plateau_region2 = np.arange(int(np.floor(0.6*dim_sum)), int(np.floor(0.85*dim_sum)+1))
     plateau_indices = np.concatenate((plateau_region1, plateau_region2))
     x_plateau = np.arange(dim_sum)[plateau_indices]
     y_plateau = meff_avg[plateau_indices]
@@ -102,5 +89,29 @@ if __name__=="__main__":
     ax3.set_title(r'effective mass (cosh solution)')
     ax3.legend()
 
-    fig.savefig(f'{plot_folder}pion_mass.png')
+    if plot: fig.savefig(f'{plot_folder}pion_mass.png')
     plt.close(fig)
+
+    return jackknife_estimate, jackknife_error
+
+
+if __name__=="__main__":
+
+    args = sys.argv
+
+    folder = args[1]
+    data_folder = folder+"observables/"
+    plot_folder = folder+"plots/"
+    ntherm = int(args[2]) if len(args) > 2 else 0
+
+    idxT = folder.find("T")
+    idx_ = folder.find("_")
+    idxL = folder.find("L")
+    idx__ = folder.find("/")
+    T = int(folder[idxT+1:idx_])
+    L = int(folder[idxL+1:idx__-2])
+
+    sum_axis = 1
+
+    plot_pion_mass(T, L, data_folder, plot_folder, ntherm, sum_axis, plot=True)
+

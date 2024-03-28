@@ -25,6 +25,7 @@
  *******************************************************************************/
 
 #include "dirac.h"
+#include <omp.h>
 
 #define PI 3.14159
 
@@ -62,7 +63,7 @@ void mul_1_plus_gamma(int mu,spinor *s,spinor *r)
    }
 }
 
-
+/* #pragma openmp */ 
 void dirac(spinor *s,spinor *r,double kappa,double mu)
 {
    int ix, nu;
@@ -70,6 +71,7 @@ void dirac(spinor *s,spinor *r,double kappa,double mu)
    spinor t;
    double phase = 0;
 
+   #pragma omp parallel for private(ix, nu, c, t, phase) shared(s, r, kappa, mu)
    for (ix=0;ix<V;ix++)
    {
       r[ix].s[0]=(1+I*mu)*s[ix].s[0];

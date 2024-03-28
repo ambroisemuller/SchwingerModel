@@ -86,7 +86,9 @@ mean_jackknife_mean_11 = np.mean(jackknife_means_11, axis=0)
 
 # SUM OF 4 COMPONENTS
 
-jackknife_means_tot = jackknife_means_00 + jackknife_means_11 - jackknife_means_10 - jackknife_means_01
+min_dim = min([jackknife_means_00.shape[0], jackknife_means_01.shape[0], jackknife_means_10.shape[0], jackknife_means_11.shape[0]])
+
+jackknife_means_tot = jackknife_means_00[:min_dim] + jackknife_means_11[:min_dim] - jackknife_means_10[:min_dim] - jackknife_means_01[:min_dim]
 mean_jackknife_mean_tot = np.mean(jackknife_means_tot, axis=0)
 
 # FFT

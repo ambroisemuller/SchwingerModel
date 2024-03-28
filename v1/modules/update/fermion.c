@@ -73,6 +73,8 @@ void fermion_force1(double f[V][D],spinor *phi,double kappa,double mu,double a,d
    dirac(v1,v2,kappa,mu);
    gamma5(v2);
 
+
+   /* TODO openMP */
    for (ix=0;ix<V;ix++)
    {
       for (nu=0;nu<D;nu++)
