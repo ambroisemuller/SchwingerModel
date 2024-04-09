@@ -31,17 +31,27 @@ if __name__=="__main__":
         pass
 
     t = data_dH['time']
+    min_length = t.shape[0]
     dH = data_dH['dH']
+    min_length = min(min_length, dH.shape[0])
     t = data_acc['time']
+    min_length = min(min_length, t.shape[0])
     acc = data_acc['acc']
+    min_length = min(min_length, acc.shape[0])
     t = data_plaq['time']
+    min_length = min(min_length, t.shape[0])
     plaq = data_plaq['plaq']
+    min_length = min(min_length, plaq.shape[0])
     t = data_qtop['time']
+    min_length = min(min_length, t.shape[0])
     qtop = data_qtop['qtop']
+    min_length = min(min_length, qtop.shape[0])
     try:
         condensate = data_condensate['condensate']
+        min_length = min(min_length, condensate.shape[0])
     except:
         pass
+    t, dH, acc, plaq, qtop, condensate = t[:min_length], dH[:min_length], acc[:min_length], plaq[:min_length], qtop[:min_length], condensate[:min_length]
 
     fig, ((ax_dH, ax_acc), (ax_plaq, ax_qtop)) = plt.subplots(2, 2, figsize=(12, 6))
     

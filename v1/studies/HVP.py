@@ -20,6 +20,8 @@ idx__ = folder.find("/")
 T = int(folder[idxT+1:idx_])      # remove -1
 L = int(folder[idxL+1:idx__-2])   # remove -1
 
+batch_size = 100
+
 # V0V0
 
 filename = f"{data_folder}V0V0.csv"
@@ -29,8 +31,15 @@ number_of_time_values = len(time)
 df = df.drop(df.columns[0], axis=1)
 if df.shape[1] != (T) * (L): # remove +1
     raise ValueError("The number of elements in the CSV does not match number_of_time_values * T * L")
-reshaped_array = df.values.reshape(number_of_time_values, T, L) # remove +1
-# reshaped_array = reshaped_array[ntherm:,1:,1:] # remove line
+reshaped_array = df.values.reshape(number_of_time_values, T, L)
+
+# batch batch_size consecutive values
+new_shape = (reshaped_array.shape[0] // batch_size, batch_size) + reshaped_array.shape[1:]
+if reshaped_array.shape[0] % batch_size != 0:
+    reshaped_array = reshaped_array[:-(reshaped_array.shape[0] % batch_size)]
+reshaped_array = np.reshape(reshaped_array, new_shape)
+reshaped_array = np.mean(reshaped_array, axis=1)
+
 jackknife_means_00 = reshaped_array.copy()[ntherm:, :, :]
 for i in range(jackknife_means_00.shape[0]):
     jackknife_means_00[i,:,:] = (np.sum(jackknife_means_00[:i,:,:], axis=0) + np.sum(jackknife_means_00[i+1:,:,:], axis=0))/(jackknife_means_00.shape[0]-1)
@@ -45,8 +54,15 @@ number_of_time_values = len(time)
 df = df.drop(df.columns[0], axis=1)
 if df.shape[1] != (T) * (L): # remove +1
     raise ValueError("The number of elements in the CSV does not match number_of_time_values * T * L")
-reshaped_array = df.values.reshape(number_of_time_values, T, L) # remove +1
-# reshaped_array = reshaped_array[ntherm:,1:,1:] # remove line
+reshaped_array = df.values.reshape(number_of_time_values, T, L)
+
+# batch batch_size consecutive values
+new_shape = (reshaped_array.shape[0] // batch_size, batch_size) + reshaped_array.shape[1:]
+if reshaped_array.shape[0] % batch_size != 0:
+    reshaped_array = reshaped_array[:-(reshaped_array.shape[0] % batch_size)]
+reshaped_array = np.reshape(reshaped_array, new_shape)
+reshaped_array = np.mean(reshaped_array, axis=1)
+
 jackknife_means_01 = reshaped_array.copy()[ntherm:, :, :]
 for i in range(jackknife_means_01.shape[0]):
     jackknife_means_01[i,:,:] = (np.sum(jackknife_means_01[:i,:,:], axis=0) + np.sum(jackknife_means_01[i+1:,:,:], axis=0))/(jackknife_means_01.shape[0]-1)
@@ -61,8 +77,15 @@ number_of_time_values = len(time)
 df = df.drop(df.columns[0], axis=1)
 if df.shape[1] != (T) * (L): # remove +1
     raise ValueError("The number of elements in the CSV does not match number_of_time_values * T * L")
-reshaped_array = df.values.reshape(number_of_time_values, T, L) # remove +1
-# reshaped_array = reshaped_array[ntherm:,1:,1:] # remove line
+reshaped_array = df.values.reshape(number_of_time_values, T, L)
+
+# batch batch_size consecutive values
+new_shape = (reshaped_array.shape[0] // batch_size, batch_size) + reshaped_array.shape[1:]
+if reshaped_array.shape[0] % batch_size != 0:
+    reshaped_array = reshaped_array[:-(reshaped_array.shape[0] % batch_size)]
+reshaped_array = np.reshape(reshaped_array, new_shape)
+reshaped_array = np.mean(reshaped_array, axis=1)
+
 jackknife_means_10 = reshaped_array.copy()[ntherm:, :, :]
 for i in range(jackknife_means_10.shape[0]):
     jackknife_means_10[i,:,:] = (np.sum(jackknife_means_10[:i,:,:], axis=0) + np.sum(jackknife_means_10[i+1:,:,:], axis=0))/(jackknife_means_10.shape[0]-1)
@@ -77,8 +100,15 @@ number_of_time_values = len(time)
 df = df.drop(df.columns[0], axis=1)
 if df.shape[1] != (T) * (L): # remove +1
     raise ValueError("The number of elements in the CSV does not match number_of_time_values * T * L")
-reshaped_array = df.values.reshape(number_of_time_values, T, L) # remove +1
-# reshaped_array = reshaped_array[ntherm:,1:,1:] # remove line
+reshaped_array = df.values.reshape(number_of_time_values, T, L)
+
+# batch batch_size consecutive values
+new_shape = (reshaped_array.shape[0] // batch_size, batch_size) + reshaped_array.shape[1:]
+if reshaped_array.shape[0] % batch_size != 0:
+    reshaped_array = reshaped_array[:-(reshaped_array.shape[0] % batch_size)]
+reshaped_array = np.reshape(reshaped_array, new_shape)
+reshaped_array = np.mean(reshaped_array, axis=1)
+
 jackknife_means_11 = reshaped_array.copy()[ntherm:, :, :]
 for i in range(jackknife_means_11.shape[0]):
     jackknife_means_11[i,:,:] = (np.sum(jackknife_means_11[:i,:,:], axis=0) + np.sum(jackknife_means_11[i+1:,:,:], axis=0))/(jackknife_means_11.shape[0]-1)

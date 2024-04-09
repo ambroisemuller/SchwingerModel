@@ -1,0 +1,15 @@
+kappa       0.2530
+beta        8
+ntherm      0
+ntraj       40000
+subtraj     25
+traj_length 2
+nstep       2
+integrator  LPFR
+npf         2
+mu          0
+mu          0
+res_act     1.e-10
+res_frc     1.e-8
+seed        111
+config      output.cnfg

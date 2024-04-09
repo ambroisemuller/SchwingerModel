@@ -45,7 +45,8 @@ for subitem in os.listdir(t_dir_path):
         kappa = float(subitem[idxk+1:idx_])
         beta = float(subitem[idxb+1:idx__-2])
 
-        sum_axis = 2
+
+        sum_axis = 1
 
         m_pcac, err = plot_pcac_mass(T, L, data_folder, plot_folder, ntherm, sum_axis, True)
 
@@ -58,18 +59,23 @@ for subitem in os.listdir(t_dir_path):
         m, c = np.polyfit(kappas, masses, 1)
         k_range = np.linspace(min(kappas), max(kappas))
 
+
         k_critical = (1-c)/m
 
-        fig, ax = plt.subplots(1, 1, figsize=(8, 4))
+        fig, ax = plt.subplots(1, 1, figsize=(6, 3.6))
         ax.errorbar(kappas, masses, errors, fmt='d', capsize=3, color='black', label='Extracted masses')
-        ax.plot(k_range, m*k_range+c, '--', label='Linear fit')
+        ax.plot(k_range, m*k_range+c, '-', label='Linear fit')
         ax.plot(k_range, np.ones_like(k_range), '--', color='black', label='Target physical mass')
-        ax.plot([k_critical, k_critical], [min(masses)-errors[np.argmin(masses)], 1], '--', color='gray', label=r'$\kappa^* = $%.5f'%(k_critical))
+        ax.plot([k_critical, k_critical], [min(masses)-errors[np.argmin(masses)], 1], ':', color='gray', label=r'$\kappa^* = $%.5f'%(k_critical))
         # ax.annotate(, (k_critical+0.0001, min(masses)))
         ax.set_xlabel(r'$\kappa$')
         ax.set_ylabel(r'$m_{PCAC}$')
         ax.legend()
+        # ax.plot([0.268, 0.268], [0.99, 1.68], color='tab:red')
         fig.tight_layout()
+        fig.savefig(t_folder+'mass_tuning.pdf')
         fig.savefig(t_folder+'mass_tuning.png')
+        # fig.savefig('pcac_tune_T4.pdf')
         plt.close(fig)
-                
+            
+print(f"fit: m_pcac = {m}*kappa + {c}")

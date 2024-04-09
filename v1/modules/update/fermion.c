@@ -38,6 +38,7 @@
  *   
  *******************************************************************************/
 
+#include <omp.h>
 #include "update.h"
 #include "linalg.h"
 #include "dirac.h"
@@ -60,31 +61,31 @@ double setpf1(spinor *pf,double kappa,double mu)
 }
 
 
-void fermion_force1(double f[V][D],spinor *phi,double kappa,double mu,double a,double res)
+void fermion_force1(double f[V][D], spinor *phi, double kappa, double mu, double a, double res)
 {
-   int ix,nu;
+   int ix, nu;
    spinor t;
    complex double c;
 
    /* v1=Q^-2 phi */
-   cg(phi,v1,kappa,mu,res,1000);
+   cg(phi, v1, kappa, mu, res, 1000);
 
    /* v2=Q^-1 phi */
-   dirac(v1,v2,kappa,mu);
+   dirac(v1, v2, kappa, mu);
    gamma5(v2);
 
 
-   /* TODO openMP */
-   for (ix=0;ix<V;ix++)
+   #pragma omp parallel for private(ix, nu, c, t) shared(f, v1, v2, kappa, mu, a)
+   for (ix = 0; ix < V; ix++)
    {
-      for (nu=0;nu<D;nu++)
+      for (nu = 0; nu < D; nu++)
       {
-         c=-a*kappa*cexp(-I*gauge[ix][nu]);
-         mul_1_plus_gamma(nu,v2+hop[ix][nu],&t);
-         f[ix][nu]=2*(cimag(conj(v1[ix].s[0])*c*t.s[0])-cimag(conj(v1[ix].s[1])*c*t.s[1]));
+         c = -a*kappa*cexp(-I*gauge[ix][nu]);
+         mul_1_plus_gamma(nu, v2 + hop[ix][nu], &t);
+         f[ix][nu] = 2 * (cimag(conj(v1[ix].s[0]) * c * t.s[0]) - cimag(conj(v1[ix].s[1]) * c * t.s[1]));
 
-         mul_1_plus_gamma(nu,v1+hop[ix][nu],&t);
-         f[ix][nu]+=2*(cimag(conj(v2[ix].s[0])*c*t.s[0])-cimag(conj(v2[ix].s[1])*c*t.s[1]));
+         mul_1_plus_gamma(nu, v1 + hop[ix][nu], &t);
+         f[ix][nu] += 2 * (cimag(conj(v2[ix].s[0]) * c * t.s[0]) - cimag(conj(v2[ix].s[1]) * c * t.s[1]));
       }
    }
 }

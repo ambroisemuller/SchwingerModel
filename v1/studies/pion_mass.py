@@ -8,6 +8,7 @@ import matplotlib as mpl
 mpl.rcParams['font.family'] = 'STIXGeneral'
 mpl.rcParams['font.size'] = 12
 
+batch_size = 1
 
 def plot_pion_mass(T, L, data_folder, plot_folder, ntherm, sum_axis, plot=False):
 
@@ -24,8 +25,15 @@ def plot_pion_mass(T, L, data_folder, plot_folder, ntherm, sum_axis, plot=False)
         raise ValueError("The number of elements in the CSV does not match number_of_time_values * T * L")
     reshaped_array = df.values.reshape(number_of_time_values, T, L)
 
+    # batch batch_size consecutive values
+    new_shape = (reshaped_array.shape[0] // batch_size, batch_size) + reshaped_array.shape[1:]
+    if reshaped_array.shape[0] % batch_size != 0:
+        reshaped_array = reshaped_array[:-(reshaped_array.shape[0] % batch_size)]
+    reshaped_array = np.reshape(reshaped_array, new_shape)
+    reshaped_array = np.mean(reshaped_array, axis=1)
+
     #  generate ensemble of means using jackknife
-    jackknife_means = reshaped_array.copy()[ntherm:, :, :]
+    jackknife_means = reshaped_array.copy()[int(np.ceil(ntherm*1.0/batch_size)):, :, :]
     for i in range(jackknife_means.shape[0]):
         jackknife_means[i,:,:] = (np.sum(jackknife_means[:i,:,:], axis=0) + np.sum(jackknife_means[i+1:,:,:], axis=0))/(jackknife_means.shape[0]-1)
     summed_jackknife_means = np.sum(jackknife_means, axis=sum_axis)
@@ -35,7 +43,7 @@ def plot_pion_mass(T, L, data_folder, plot_folder, ntherm, sum_axis, plot=False)
     fig, (ax1, ax3) = plt.subplots(1, 2, figsize=(12, 4))
     ax1.errorbar(np.arange(dim_sum), summed_jackknife_mean_avg, 3*summed_jackknife_mean_std, fmt='.-', color='black', capsize=2)
     ax1.set_yscale('log')
-    ax1.set_title(r'$\langle P(t)  P(0) \rangle$')
+    ax1.set_title(r'$\langle P(x)  P(0) \rangle$')
 
     # LOG
 

@@ -27,37 +27,50 @@ elif temp == 6:
     ]
 elif temp == 5:
     directories = [
-        'T3_L15_A/k0.2706_b1.758'
+        
     ]
 elif temp == 4:
     directories = [
-        'T4_L16_A/k0.2677_b2.000', 
-        'T5_L20_A/k0.2603_b3.125', 
+        'T4_L16_A/k0.2680_b2.000', 
+        # 'T5_L20_A/k0.2603_b3.125', 
         'T6_L24_A/k0.2564_b4.500',
-        'T9_L36_A/k0.2519_b10.125'
+        'T8_L32_A/k0.2530_b8.000',
+        # 'T9_L36_A/k0.2519_b10.125'
+        'T10_L40_A/k0.2515_b12.500'
     ]
 elif temp == 3:
     directories = [
-        'T6_L18_A/k0.2634_b2.531',
-        'T8_L24_A/k0.2564_b4.500'
+        'T5_L15_A/k0.2707_b1.758',
+        'T6_L18_A/k0.2635_b2.531',
+        'T8_L24_A/k0.2564_b4.500',
+        'T10_L30_A/k0.2536_b7.031'
     ]
 elif temp == 2.5:
     directories = [
-        'T6_L15_A/k0.2706_b1.758'
+        
     ]
 elif temp == 2:
     directories = [
+        'T8_L16_A/k0.2680_b2.000',
         'T10_L20_A/k0.2603_b3.125', 
-        'T12_L24_A/k0.2564_b4.500'
+        'T12_L24_A/k0.2564_b4.500',
+        'T16_L32_A/k0.2530_b8.000',
+        'T20_L40_A/k0.2515_b12.500'
         ]
 elif temp == 1.5:
     directories = [
-        'T12_L18_A/k0.2634_b2.531'
+        'T10_L15_A/k0.2707_b1.758',
+        'T12_L18_A/k0.2635_b2.531',
+        'T16_L24_A/k0.2564_b4.500',
+        'T20_L30_A/k0.2536_b7.031'
     ]
 elif temp == 1:
     directories = [
         'T16_L16_A/k0.2680_b2.000',
-        'T18_L18_A/k0.2634_b2.531'
+        'T18_L18_A/k0.2634_b2.531',
+        'T24_L24_A/k0.2564_b4.500',
+        'T32_L32_A/k0.2530_b8.000',
+        'T40_L40_A/k0.2515_b12.500'
     ]
 elif temp == 0.5:
     directories = [
@@ -121,28 +134,44 @@ for folder in directories:
 
 
 
-    fig, ((ax_plaq, ax_cond), (ax_pcac, ax_pion)) = plt.subplots(2, 2, figsize=(12, 8))
+    fig, ((ax_plaq, ax_cond), (ax_pcac, ax_pion)) = plt.subplots(2, 2, figsize=(12, 6))
+    fig.suptitle(rf"Continuum limit at $T=${temp}")
+    a_range = np.linspace(0, max(a_arr), 101)
 
+    m, c = np.polyfit(a_arr, plaq_arr, 1)
     ax_plaq.errorbar(a_arr, plaq_arr, plaq_err, fmt='x', capsize=3, color='black')
-    ax_plaq.set_xlabel(r"Lattice spacing ($(a/L)^2$)")
+    ax_plaq.plot(a_range, m*a_range+c, '--')
+    ax_plaq.set_xlabel(r"Lattice spacing $(a/L)^2$")
     ax_plaq.set_ylabel(r"Plaquette")
 
     try:
+        m, c = np.polyfit(a_arr, cond_arr, 1)
         ax_cond.errorbar(a_arr, cond_arr, cond_err, fmt='x', capsize=3, color='black')
-        ax_cond.set_xlabel(r"Lattice spacing ($(a/L)^2$)")
+        ax_cond.plot(a_range, m*a_range+c, '--')
+        ax_cond.set_xlabel(r"Lattice spacing $(a/L)^2$")
         ax_cond.set_ylabel(r"Chiral condensate $\langle \bar\psi \psi \rangle$")
     except:
         pass
 
     ax_pcac.errorbar(a_arr, pcac_arr, pcac_err, fmt='x', capsize=3, color='black')
-    ax_pcac.plot([min(a_arr), max(a_arr)], [1, 1], '--', color='gray')
+    ax_pcac.plot(a_range, np.ones_like(a_range), '--', color='gray')
     ax_pcac.set_xlabel(r"Lattice spacing $(a/L)^2$")
     ax_pcac.set_ylabel(r"PCAC mass ($m_{PCAC} \cdot L$)")
+    ax_pcac.set_ylim(0.75, 1.5)
 
+    m, c = np.polyfit(a_arr, pion_arr, 1)
     ax_pion.errorbar(a_arr, pion_arr, pion_err, fmt='x', capsize=3, color='black')
-    ax_pion.set_xlabel(r"Lattice spacing ($(a/L)^2$)")
-    ax_pion.set_ylabel(r"Pion mass ($m_\pi L$)")
+    ax_pion.plot(a_range, m*a_range+c, '--')
+    ax_pion.set_xlabel(r"Lattice spacing $(a/L)^2$")
+    ax_pion.set_ylabel(r"Pion mass ($m_\pi \cdot L$)")
+    ax_pion.set_ylim(2.5, 17.5)
 
     fig.tight_layout()
     fig.savefig(f'continuum_limit_temp{temp}.png')
     plt.close(fig)
+
+print("a_arr = ", a_arr)
+print("pcac_arr = ", pcac_arr)
+print("pcac_err = ", pcac_err)
+print("pion_arr = ", pion_arr)
+print("pion_err = ", pion_err)

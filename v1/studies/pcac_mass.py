@@ -8,6 +8,8 @@ import matplotlib as mpl
 mpl.rcParams['font.family'] = 'STIXGeneral'
 mpl.rcParams['font.size'] = 12
 
+batch_size = 1
+
 def plot_pcac_mass(T, L, data_folder, plot_folder, ntherm, sum_axis, plot=False):
 
     dim_sum = L if sum_axis == 1 else T
@@ -22,8 +24,15 @@ def plot_pcac_mass(T, L, data_folder, plot_folder, ntherm, sum_axis, plot=False)
         raise ValueError("The number of elements in the CSV does not match number_of_time_values * T * L")
     reshaped_array = df.values.reshape(number_of_time_values, T, L)
 
+    # batch batch_size consecutive values
+    new_shape = (reshaped_array.shape[0] // batch_size, batch_size) + reshaped_array.shape[1:]
+    if reshaped_array.shape[0] % batch_size != 0:
+        reshaped_array = reshaped_array[:-(reshaped_array.shape[0] % batch_size)]
+    reshaped_array = np.reshape(reshaped_array, new_shape)
+    reshaped_array = np.mean(reshaped_array, axis=1)
+
     #  generate ensemble of PP means using jackknife
-    PP_jackknife_means = reshaped_array.copy()[ntherm:, :, :]
+    PP_jackknife_means = reshaped_array.copy()[int(np.ceil(ntherm*1.0/batch_size)):, :, :]
     for i in range(PP_jackknife_means.shape[0]):
         PP_jackknife_means[i,:,:] = (np.sum(PP_jackknife_means[:i,:,:], axis=0) + np.sum(PP_jackknife_means[i+1:,:,:], axis=0))/(PP_jackknife_means.shape[0]-1)
     PP_summed_jackknife_means = np.sum(PP_jackknife_means, axis=sum_axis)
@@ -53,8 +62,15 @@ def plot_pcac_mass(T, L, data_folder, plot_folder, ntherm, sum_axis, plot=False)
     # average
     reshaped_array = 0.5*(reshaped_array1[:min_dim, :, :] - reshaped_array2[:min_dim, :, :])
 
+    # batch batch_size consecutive values
+    new_shape = (reshaped_array.shape[0] // batch_size, batch_size) + reshaped_array.shape[1:]
+    if reshaped_array.shape[0] % batch_size != 0:
+        reshaped_array = reshaped_array[:-(reshaped_array.shape[0] % batch_size)]
+    reshaped_array = np.reshape(reshaped_array, new_shape)
+    reshaped_array = np.mean(reshaped_array, axis=1)
+
     #  generate ensemble of AP means using jackknife
-    AP_jackknife_means = reshaped_array.copy()[ntherm:, :, :]
+    AP_jackknife_means = reshaped_array.copy()[int(np.ceil(ntherm*1.0/batch_size)):, :, :]
     for i in range(AP_jackknife_means.shape[0]):
         AP_jackknife_means[i,:,:] = (np.sum(AP_jackknife_means[:i,:,:], axis=0) + np.sum(AP_jackknife_means[i+1:,:,:], axis=0))/(AP_jackknife_means.shape[0]-1)
     AP_summed_jackknife_means = np.sum(AP_jackknife_means, axis=sum_axis)
@@ -103,6 +119,7 @@ def plot_pcac_mass(T, L, data_folder, plot_folder, ntherm, sum_axis, plot=False)
     ax3.set_title(r" $\partial_t \sum_x \langle P(t, x) \ A_0(0, 0) - A_0(t, x) \ P(0, 0) \rangle $")
     ax4.errorbar(np.arange(dim_sum)[2:-1], quotient_avg[2:-1], quotient_std[2:-1], fmt='.-', color='black', capsize=2)
     ax4.plot(np.arange(dim_sum)[2:-1], np.ones(dim_sum)[2:-1]*(1.0), '--', color='blue')
+    ax4.plot(np.arange(dim_sum)[2:-1], np.zeros(dim_sum)[2:-1]*(1.0), '--', color='gray')
     ax4.plot(plateau_indices, weighted_mean*np.ones_like(plateau_indices), color='r', linestyle='--', label=r'$m_{PCAC} = %.3f \pm %.3f$' % (weighted_mean, error_weighted_mean))
     ax4.fill_between(plateau_indices, weighted_mean - error_weighted_mean, weighted_mean + error_weighted_mean, color='red', alpha=0.3)
     ax4.set_title(r" $m_{PCAC} \cdot L = L \times \frac{1}{2} \frac{\partial_t \sum_x \langle P(t, x) \ A_0(0, 0) - A_0(t, x) \ P(0, 0) \rangle}{\sum_x \langle P(t, x) \ P(0, 0) \rangle}$")

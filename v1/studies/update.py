@@ -13,9 +13,9 @@ base_path = os.getcwd()
 
 scripts = [
     'plot.py', 
-    # 'plot_corr.py', 
-    # 'pcac_mass.py', 
-    # 'pion_mass.py'
+    'plot_corr.py', 
+    'pcac_mass.py', 
+    'pion_mass.py'
     ]
 
 # Loop through all items in the base directory
