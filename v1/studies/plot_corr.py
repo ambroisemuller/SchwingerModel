@@ -71,21 +71,21 @@ def plot_correlator(corr, title, log_plot):
     cbar.set_label("(log scale)" if log_plot else "(linear scale)")
     ax0.set_xlabel('t')
     ax0.set_ylabel('x')
-    if corr == 'V0V0' or corr == 'V1V1':
-        temp = float(L)/float(T)
-        ax1.set_xlim(0, 5)
-        ax1.set_ylim(-1e-2,1e-1)
-        ax1.errorbar(np.arange(L), np.arange(L)*summed_over_0_avg, 3*np.arange(L)*summed_over_0_std, color='black', fmt='.-', capsize=2)
-        ax1.plot(np.arange(L), np.ones(L)/(2*np.pi)-(np.pi/3)*np.arange(L)**2*temp/L**2, '--', color='blue')
-        # ax1.set_yscale('log')
-    else:
-        ax1.errorbar(np.arange(L), summed_over_0_avg, 3*summed_over_0_std, color='black', fmt='.-', capsize=2)
-        ax1.errorbar(np.arange(L)+1, summed_over_0_avg[::-1], 3*summed_over_0_std[::-1], color='black', fmt='.:', capsize=2)
+    # if corr == 'V0V0' or corr == 'V1V1':
+    #     temp = float(L)/float(T)
+    #     # ax1.set_xlim(0, 5)
+    #     # ax1.set_ylim(-1e-2,1e-1)
+    #     ax1.errorbar(np.arange(L), np.arange(L), 3*np.arange(L), color='black', fmt='.-', capsize=2)
+    #     # ax1.plot(np.arange(L), np.ones(L)/(2*np.pi)-(np.pi/3)*np.arange(L)**2*temp/L**2, '--', color='blue')
+    #     # ax1.set_yscale('log')
+    # else:
+    ax1.errorbar(np.arange(L), np.abs(summed_over_0_avg), 3*summed_over_0_std, color='black', fmt='.-', capsize=2)
+    # ax1.errorbar(np.arange(L)+1, summed_over_0_avg[::-1], 3*summed_over_0_std[::-1], color='black', fmt='.:', capsize=2)
     if log_plot:
         ax1.set_yscale('log')
     ax1.set_xlabel('x')
-    ax2.errorbar(np.arange(T), summed_over_1_avg, 3*summed_over_1_std, color='black', fmt='.-', capsize=2)
-    ax2.errorbar(np.arange(T)+1, summed_over_1_avg[::-1], 3*summed_over_1_std[::-1], color='black', fmt='.:', capsize=2)
+    ax2.errorbar(np.arange(T), np.abs(summed_over_1_avg), 3*summed_over_1_std, color='black', fmt='.-', capsize=2)
+    # ax2.errorbar(np.arange(T)+1, summed_over_1_avg[::-1], 3*summed_over_1_std[::-1], color='black', fmt='.:', capsize=2)
     if log_plot:
         ax2.set_yscale('log')
     ax2.set_xlabel('t')
@@ -138,10 +138,10 @@ def plot_correlator(corr, title, log_plot):
 
 if __name__=="__main__":
     plot_correlator("PP", r"$\langle \ P (t, x) \ P (0, 0) \ \rangle$", True)
-    plot_correlator("V0V0", r"$\langle \ J_0 (t, x) \ J_0 (0, 0) \ \rangle$", False)
+    plot_correlator("V0V0", r"$\langle \ J_0 (t, x) \ J_0 (0, 0) \ \rangle$", True)
     plot_correlator("V0V1", r"$\langle \ J_0 (t, x) \ J_1 (0, 0) \ \rangle$", False)
     plot_correlator("V1V0", r"$\langle \ J_1 (t, x) \ J_0 (0, 0) \ \rangle$", False)
-    plot_correlator("V1V1", r"$\langle \ J_1 (t, x) \ J_1 (0, 0) \ \rangle$", False)
+    plot_correlator("V1V1", r"$\langle \ J_1 (t, x) \ J_1 (0, 0) \ \rangle$", True)
     plot_correlator("A0P", r"$\langle \ A_0 (t, x) \ P (0, 0) \ \rangle$", False)
     plot_correlator("A1P", r"$\langle \ A_1 (t, x) \ P (0, 0) \ \rangle$", False)
     plot_correlator("PA0", r"$\langle \ P (t, x) \ A_0 (0, 0) \ \rangle$", False)

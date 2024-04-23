@@ -17,65 +17,70 @@ ntherm = int(args[2]) if len(args) > 2 else 0
 # Set the base_path to the current working directory
 base_path = os.getcwd()
 
-if temp == 8:
-    directories = [
+# if temp == 8:
+#     directories = [
 
-    ]
-elif temp == 6:
-    directories = [
+#     ]
+# elif temp == 6:
+#     directories = [
         
-    ]
-elif temp == 5:
-    directories = [
+#     ]
+# elif temp == 5:
+#     directories = [
         
-    ]
-elif temp == 4:
-    directories = [
-        'T4_L16_A/k0.2680_b2.000', 
-        # 'T5_L20_A/k0.2603_b3.125', 
-        'T6_L24_A/k0.2564_b4.500',
-        'T8_L32_A/k0.2530_b8.000',
-        # 'T9_L36_A/k0.2519_b10.125'
-        'T10_L40_A/k0.2515_b12.500'
-    ]
-elif temp == 3:
-    directories = [
-        'T5_L15_A/k0.2707_b1.758',
-        'T6_L18_A/k0.2635_b2.531',
-        'T8_L24_A/k0.2564_b4.500',
-        'T10_L30_A/k0.2536_b7.031'
-    ]
-elif temp == 2.5:
-    directories = [
+#     ]
+# elif temp == 4:
+#     directories = [
+#         'T4_L16_A/k0.2680_b2.000', 
+#         # 'T5_L20_A/k0.2603_b3.125', 
+#         'T6_L24_A/k0.2564_b4.500',
+#         'T8_L32_A/k0.2530_b8.000',
+#         # 'T9_L36_A/k0.2519_b10.125'
+#         'T10_L40_A/k0.2515_b12.500'
+#     ]
+# elif temp == 3:
+#     directories = [
+#         'T5_L15_A/k0.2707_b1.758',
+#         'T6_L18_A/k0.2635_b2.531',
+#         'T8_L24_A/k0.2564_b4.500',
+#         'T10_L30_A/k0.2536_b7.031'
+#     ]
+# elif temp == 2.5:
+#     directories = [
         
-    ]
-elif temp == 2:
-    directories = [
-        'T8_L16_A/k0.2680_b2.000',
-        'T10_L20_A/k0.2603_b3.125', 
-        'T12_L24_A/k0.2564_b4.500',
-        'T16_L32_A/k0.2530_b8.000',
-        'T20_L40_A/k0.2515_b12.500'
-        ]
-elif temp == 1.5:
-    directories = [
-        'T10_L15_A/k0.2707_b1.758',
-        'T12_L18_A/k0.2635_b2.531',
-        'T16_L24_A/k0.2564_b4.500',
-        'T20_L30_A/k0.2536_b7.031'
-    ]
-elif temp == 1:
-    directories = [
-        'T16_L16_A/k0.2680_b2.000',
-        'T18_L18_A/k0.2634_b2.531',
-        'T24_L24_A/k0.2564_b4.500',
-        'T32_L32_A/k0.2530_b8.000',
-        'T40_L40_A/k0.2515_b12.500'
-    ]
-elif temp == 0.5:
-    directories = [
+#     ]
+# elif temp == 2:
+#     directories = [
+#         'T8_L16_A/k0.2680_b2.000',
+#         'T10_L20_A/k0.2603_b3.125', 
+#         'T12_L24_A/k0.2564_b4.500',
+#         'T16_L32_A/k0.2530_b8.000',
+#         'T20_L40_A/k0.2515_b12.500'
+#         ]
+# elif temp == 1.5:
+#     directories = [
+#         'T10_L15_A/k0.2707_b1.758',
+#         'T12_L18_A/k0.2635_b2.531',
+#         'T16_L24_A/k0.2564_b4.500',
+#         'T20_L30_A/k0.2536_b7.031'
+#     ]
+# elif temp == 1:
+#     directories = [
+#         'T16_L16_A/k0.2680_b2.000',
+#         'T18_L18_A/k0.2634_b2.531',
+#         'T24_L24_A/k0.2564_b4.500',
+#         'T32_L32_A/k0.2530_b8.000',
+#         'T40_L40_A/k0.2515_b12.500'
+#     ]
+# elif temp == 0.5:
+#     directories = [
         
-    ]
+#     ]
+
+
+temp = str(temp)+"_free"
+
+directories = []
 
 sum_axis_pcac = 1
 sum_axis_pion = 1

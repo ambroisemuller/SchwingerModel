@@ -61,13 +61,15 @@ for subitem in os.listdir(t_dir_path):
 
 
         k_critical = (1-c)/m
+        k_zero = -c/m
 
         fig, ax = plt.subplots(1, 1, figsize=(6, 3.6))
         ax.errorbar(kappas, masses, errors, fmt='d', capsize=3, color='black', label='Extracted masses')
         ax.plot(k_range, m*k_range+c, '-', label='Linear fit')
-        ax.plot(k_range, np.ones_like(k_range), '--', color='black', label='Target physical mass')
+        ax.plot(k_range, np.ones_like(k_range), '--', color='gray', label='Target physical mass')
+        ax.plot(k_range, np.zeros_like(k_range), '--', color='black', label='Zero physical mass')
         ax.plot([k_critical, k_critical], [min(masses)-errors[np.argmin(masses)], 1], ':', color='gray', label=r'$\kappa^* = $%.5f'%(k_critical))
-        # ax.annotate(, (k_critical+0.0001, min(masses)))
+        ax.plot([k_zero, k_zero], [min(masses)-errors[np.argmin(masses)], 0], ':', color='black', label=r'$\kappa_{(0)} = $%.5f'%(k_zero))
         ax.set_xlabel(r'$\kappa$')
         ax.set_ylabel(r'$m_{PCAC}$')
         ax.legend()
