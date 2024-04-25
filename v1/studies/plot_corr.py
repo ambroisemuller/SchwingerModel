@@ -60,11 +60,11 @@ def plot_correlator(corr, title, log_plot):
     ax2 = plt.subplot(gs[5:,10:])
 
     if log_plot:
-        heatmap = ax0.imshow(np.log(mean_jackknife_mean.transpose()), cmap='viridis', aspect='equal')
-        contours = ax0.contour(np.log(mean_jackknife_mean.transpose()), colors='black', linewidths=0.5)
+        heatmap = ax0.imshow(np.log(mean_jackknife_mean.transpose())[1:,1:], cmap='viridis', aspect='equal')
+        contours = ax0.contour(np.log(mean_jackknife_mean.transpose())[1:,1:], colors='black', linewidths=0.5)
     else:
-        heatmap = ax0.imshow((mean_jackknife_mean.transpose()), cmap='viridis', aspect='equal')
-        contours = ax0.contour((mean_jackknife_mean.transpose()), colors='black', linewidths=0.5)
+        heatmap = ax0.imshow((mean_jackknife_mean.transpose())[1:,1:], cmap='viridis', aspect='equal')
+        contours = ax0.contour((mean_jackknife_mean.transpose())[1:,1:], colors='black', linewidths=0.5)
     ax0.clabel(contours, inline=True, fontsize=8)
     ax0.set_title(title)
     cbar = fig.colorbar(heatmap, ax=ax0, fraction=0.05, pad=0.04)
@@ -79,12 +79,12 @@ def plot_correlator(corr, title, log_plot):
     #     # ax1.plot(np.arange(L), np.ones(L)/(2*np.pi)-(np.pi/3)*np.arange(L)**2*temp/L**2, '--', color='blue')
     #     # ax1.set_yscale('log')
     # else:
-    ax1.errorbar(np.arange(L), np.abs(summed_over_0_avg), 3*summed_over_0_std, color='black', fmt='.-', capsize=2)
+    ax1.errorbar(np.arange(L)[1:], (summed_over_0_avg)[1:], 3*summed_over_0_std[1:], color='black', fmt='.-', capsize=2)
     # ax1.errorbar(np.arange(L)+1, summed_over_0_avg[::-1], 3*summed_over_0_std[::-1], color='black', fmt='.:', capsize=2)
     if log_plot:
         ax1.set_yscale('log')
     ax1.set_xlabel('x')
-    ax2.errorbar(np.arange(T), np.abs(summed_over_1_avg), 3*summed_over_1_std, color='black', fmt='.-', capsize=2)
+    ax2.errorbar(np.arange(T)[1:], (summed_over_1_avg)[1:], 3*summed_over_1_std[1:], color='black', fmt='.-', capsize=2)
     # ax2.errorbar(np.arange(T)+1, summed_over_1_avg[::-1], 3*summed_over_1_std[::-1], color='black', fmt='.:', capsize=2)
     if log_plot:
         ax2.set_yscale('log')
@@ -137,11 +137,11 @@ def plot_correlator(corr, title, log_plot):
     # fig.savefig(f"{plot_folder}{corr}.png")
 
 if __name__=="__main__":
-    plot_correlator("PP", r"$\langle \ P (t, x) \ P (0, 0) \ \rangle$", True)
-    plot_correlator("V0V0", r"$\langle \ J_0 (t, x) \ J_0 (0, 0) \ \rangle$", True)
+    plot_correlator("PP", r"$\langle \ P (t, x) \ P (0, 0) \ \rangle$", False)
+    plot_correlator("V0V0", r"$\langle \ J_0 (t, x) \ J_0 (0, 0) \ \rangle$", False)
     plot_correlator("V0V1", r"$\langle \ J_0 (t, x) \ J_1 (0, 0) \ \rangle$", False)
     plot_correlator("V1V0", r"$\langle \ J_1 (t, x) \ J_0 (0, 0) \ \rangle$", False)
-    plot_correlator("V1V1", r"$\langle \ J_1 (t, x) \ J_1 (0, 0) \ \rangle$", True)
+    plot_correlator("V1V1", r"$\langle \ J_1 (t, x) \ J_1 (0, 0) \ \rangle$", False)
     plot_correlator("A0P", r"$\langle \ A_0 (t, x) \ P (0, 0) \ \rangle$", False)
     plot_correlator("A1P", r"$\langle \ A_1 (t, x) \ P (0, 0) \ \rangle$", False)
     plot_correlator("PA0", r"$\langle \ P (t, x) \ A_0 (0, 0) \ \rangle$", False)

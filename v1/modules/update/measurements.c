@@ -196,13 +196,13 @@ static void compute_correlators()
             corr_P__A0[actual_index] += (- 2*creal(S00_S10c + S01_S11c))/((double)(CORR_SAMPLES));
             corr_P__A1[actual_index] += (2*cimag(S00_S10c + S01_S11c))/((double)(CORR_SAMPLES));
 
-            S00_S11c = phi[0][site_index].s[0] * conj(phi[1][site_index].s[1]);
-            S01_S10c = phi[1][site_index].s[0] * conj(phi[0][site_index].s[1]);
+            S00_S11c = phi[0][site_index].s[0] * (phi[1][site_index].s[1]);
+            S01_S10c = phi[1][site_index].s[0] * (phi[0][site_index].s[1]);
 
-            corr_V0_V0[actual_index] += (2*creal(S00_S11c) - 2*creal(S01_S10c))/((double)(CORR_SAMPLES));
-            corr_V0_V1[actual_index] += (- 2*cimag(S00_S11c) + 2*cimag(S01_S10c))/((double)(CORR_SAMPLES));
-            corr_V1_V0[actual_index] += (2*cimag(S00_S11c) + 2*cimag(S01_S10c))/((double)(CORR_SAMPLES));
-            corr_V1_V1[actual_index] += (2*creal(S00_S11c) + 2*creal(S01_S10c))/((double)(CORR_SAMPLES));
+            corr_V0_V0[actual_index] += /* creal(S00_S11c); */ (-2*creal(S00_S11c) - 2*creal(S01_S10c))/((double)(CORR_SAMPLES)); /* something must be wrong here, no consistent with G00 = -G11 result */
+            corr_V0_V1[actual_index] += /* cimag(S00_S11c); */ (- 2*cimag(S00_S11c) + 2*cimag(S01_S10c))/((double)(CORR_SAMPLES));
+            corr_V1_V0[actual_index] += /* cimag(S01_S10c); */ (+ 2*cimag(S00_S11c) + 2*cimag(S01_S10c))/((double)(CORR_SAMPLES));
+            corr_V1_V1[actual_index] += /* creal(S01_S10c); */ (+ 2*creal(S00_S11c) + 2*creal(S01_S10c))/((double)(CORR_SAMPLES));
             
         }
     }
