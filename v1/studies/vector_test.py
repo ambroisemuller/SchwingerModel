@@ -69,19 +69,15 @@ cbar.set_label("(log scale)" if log_plot else "(linear scale)")
 ax0.set_xlabel('t')
 ax0.set_ylabel('x')
 
-x_tilde = 2*np.pi*np.arange(L)/T
-G_tilde = T*summed_over_0_avg
-G_err = 3*T*summed_over_0_std
+x_over_T = np.arange(L)/T
+G_tilde = summed_over_0_avg*T
+G_tilde_err = summed_over_0_std*T
 
-ax1.errorbar(x_tilde[1:], np.abs(G_tilde)[1:], G_err[1:], color='black', fmt='.-', capsize=2)
-ax1.plot(x_tilde, (1/np.sinh(x_tilde)+1/np.sinh(2*np.pi*L/T-x_tilde)))
-# ax1.plot(x_tilde, (1/np.sinh(x_tilde))+1/np.sinh(2*np.pi*L/T-x_tilde))
-ax1.set_yscale('log')
-# ax1.set_ylim(-0.75,1.75)
-
-# if log_plot:
+ax1.plot(x_over_T, 4*(1/(np.sinh(2*np.pi*x_over_T)) + 1/(np.sinh(2*np.pi*(L/T - x_over_T)))), color='blue', linestyle='-')
+ax1.errorbar(x_over_T, G_tilde, 3*G_tilde_err, color='black', fmt='.', capsize=2)
 # ax1.set_yscale('log')
 ax1.set_xlabel('x')
+
 ax2.errorbar(np.arange(T)[1:], (summed_over_1_avg)[1:], 3*summed_over_1_std[1:], color='black', fmt='.-', capsize=2)
 if log_plot:
     ax2.set_yscale('log')

@@ -96,7 +96,7 @@ def plot_pcac_mass(T, L, data_folder, plot_folder, ntherm, sum_axis, plot=False)
     quotient_avg = np.mean(quotient_samples, axis=0)*L
     quotient_std = np.std(quotient_samples, axis=0)*np.sqrt((quotient_samples.shape[0]-1)/quotient_samples.shape[0])*L*3
 
-    plateau_indices = np.arange(int(np.ceil(0.2*dim_sum)), int(np.floor(0.8*dim_sum)+1))
+    plateau_indices = np.arange(int(np.ceil(0.3*dim_sum)), int(np.floor(0.7*dim_sum)+1))
     x_plateau = np.arange(dim_sum)[plateau_indices]
     y_plateau = quotient_avg[plateau_indices]
     yerr_plateau = quotient_std[plateau_indices]
@@ -107,6 +107,11 @@ def plot_pcac_mass(T, L, data_folder, plot_folder, ntherm, sum_axis, plot=False)
     weights = 1 / yerr_plateau**2
     weighted_mean = np.sum(weights * y_plateau) / np.sum(weights)
     error_weighted_mean = np.sqrt(1 / np.sum(weights))*3
+
+    if np.isnan(weighted_mean) or np.isnan(error_weighted_mean):
+        print("NaN detected")
+        weighted_mean = np.mean(y_plateau)
+        error_weighted_mean = np.std(y_plateau)*3/np.sqrt(len(plateau_indices))
 
     fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(12, 8))
     ax1.errorbar(np.arange(dim_sum)[1:], AP_summed_jackknife_mean_avg[1:], 3*AP_summed_jackknife_mean_std[1:], fmt='.-', color='black', capsize=2)
