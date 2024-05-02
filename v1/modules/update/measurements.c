@@ -8,32 +8,32 @@ double kappa, beta, eps, res_act, res_frc;
 double *mus;
 int nmax, npf;
 
-char data_folder[128];
-char plot_folder[128];
-char study_folder[128];
+char data_folder[256];
+char plot_folder[256];
+char study_folder[256];
 
 FILE *file_dH;
 const char *filename_dH_ = "dH.csv";
-char filename_dH[64];
+char filename_dH[256];
 
 FILE *file_acc;
 const char *filename_acc_ = "acc.csv";
-char filename_acc[64];
+char filename_acc[256];
 
 double plaq;
 FILE *file_plaq;
 const char *filename_plaq_ = "plaq.csv";
-char filename_plaq[64];
+char filename_plaq[256];
 
 double qtop;
 FILE *file_qtop;
 const char *filename_qtop_ = "qtop.csv";
-char filename_qtop[64];
+char filename_qtop[256];
 
 double condensate;
 FILE *file_condensate;
 const char *filename_condensate_ = "condensate.csv";
-char filename_condensate[64];
+char filename_condensate[256];
 
 double corr_P__P_[V];   /*  < P(x) P(0) >       */
 double corr_A0_P_[V];   /*  < A_0(x) P(0) >     */
@@ -51,31 +51,31 @@ static spinor *temp;
 
 FILE *file_PP;
 const char *filename_PP_ = "PP.csv";
-char filename_PP[64];
+char filename_PP[256];
 FILE *file_A0P;
 const char *filename_A0P_ = "A0P.csv";
-char filename_A0P[64];
+char filename_A0P[256];
 FILE *file_A1P;
 const char *filename_A1P_ = "A1P.csv";
-char filename_A1P[64];
+char filename_A1P[256];
 FILE *file_PA0;
 const char *filename_PA0_ = "PA0.csv";
-char filename_PA0[64];
+char filename_PA0[256];
 FILE *file_PA1;
 const char *filename_PA1_ = "PA1.csv";
-char filename_PA1[64];
+char filename_PA1[256];
 FILE *file_V0V0;
 const char *filename_V0V0_ = "V0V0.csv";
-char filename_V0V0[64];
+char filename_V0V0[256];
 FILE *file_V0V1;
 const char *filename_V0V1_ = "V0V1.csv";
-char filename_V0V1[64];
+char filename_V0V1[256];
 FILE *file_V1V0;
 const char *filename_V1V0_ = "V1V0.csv";
-char filename_V1V0[64];
+char filename_V1V0[256];
 FILE *file_V1V1;
 const char *filename_V1V1_ = "V1V1.csv";
-char filename_V1V1[64];
+char filename_V1V1[256];
 
 
 static void compute_2pt(){
@@ -150,6 +150,7 @@ static void compute_correlators()
     {
         t_index = rand()%T;
         x_index = rand()%L;
+
         zero_index = t_index*L + x_index;
 
         printf("(%d, %d)", t_index, x_index);
@@ -197,7 +198,7 @@ static void compute_correlators()
             corr_P__A1[actual_index] += (2*cimag(S00_S10c + S01_S11c))/((double)(CORR_SAMPLES));
 
             S00_S11c = phi[0][site_index].s[0] * conj(phi[1][site_index].s[1]);
-            S01_S10c = phi[1][site_index].s[0] * (phi[0][site_index].s[1]);
+            S01_S10c = phi[1][site_index].s[0] * conj(phi[0][site_index].s[1]);
 
             corr_V0_V0[actual_index] += /* creal(S00_S11c); */ (2*creal(S00_S11c) - 2*creal(S01_S10c))/((double)(CORR_SAMPLES)); /* something must be wrong here, no consistent with G00 = -G11 result */
             corr_V0_V1[actual_index] += /* cimag(S00_S11c); */ (- 2*cimag(S00_S11c) + 2*cimag(S01_S10c))/((double)(CORR_SAMPLES));
@@ -216,6 +217,8 @@ void datafile_headers(hmc_params_t *hmc_params,act_params_t *act_params)
     int b_index;
     char bc[2];
     char command[256];
+    
+    printf("headers called");
 
     kappa = act_params->kappa;
     beta = act_params->beta;
@@ -225,6 +228,7 @@ void datafile_headers(hmc_params_t *hmc_params,act_params_t *act_params)
     res_frc = hmc_params->res_frc;
     eps = res_frc;
     nmax = 1e3;
+
 
     if (PERIODIC == 0){
         bc[0] = 'A';

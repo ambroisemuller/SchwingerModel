@@ -4,14 +4,14 @@
 /* Dimension of the lattice */
 #define D 2
 /* spatial extent of the lattice */
-#define L 40
+#define L 256
 /* temporal extent of the lattice */
-#define T 20
+#define T 256
 /* lattice volume, needs to be adjusted according to number of dimensions*/
 #define V (L*T)
 
 /* Periodicity of pseudofermion fields in time */
-#define PERIODIC 0
+#define PERIODIC 1
 
 #ifdef CONTROL 
 #define EXTERN 

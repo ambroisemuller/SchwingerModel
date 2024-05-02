@@ -79,8 +79,8 @@ def plot_pion_mass(T, L, data_folder, plot_folder, ntherm, sum_axis, plot=False)
     ax3.errorbar(np.arange(dim_sum), meff_avg, meff_std, fmt='.-', color='black', capsize=2)
     ax3.plot(np.arange(dim_sum), np.ones(dim_sum)*4.7, '--', color='blue')
 
-    plateau_region1 = np.arange(int(np.floor(0.15*dim_sum)), int(np.floor(0.4*dim_sum)+1))
-    plateau_region2 = np.arange(int(np.floor(0.6*dim_sum)), int(np.floor(0.85*dim_sum)+1))
+    plateau_region1 = np.arange(int(np.floor(0.3*dim_sum)), int(np.floor(0.5*dim_sum)+1))
+    plateau_region2 = np.arange(int(np.floor(0.5*dim_sum)), int(np.floor(0.7*dim_sum)+1))
     plateau_indices = np.concatenate((plateau_region1, plateau_region2))
     x_plateau = np.arange(dim_sum)[plateau_indices]
     y_plateau = meff_avg[plateau_indices]

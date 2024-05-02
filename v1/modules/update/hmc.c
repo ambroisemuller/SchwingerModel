@@ -409,6 +409,7 @@ double hmc(hmc_params_t *hmc_params,act_params_t *act_params)
    double tau,lambda;
    double gauge_old[V][D];
 
+   printf("HMC called\n");
 
    tau=hmc_params->tlength/(double)hmc_params->subtraj;
    nstep=hmc_params->nstep;
@@ -421,6 +422,8 @@ double hmc(hmc_params_t *hmc_params,act_params_t *act_params)
    res_act=hmc_params->res_act;
    res_frc=hmc_params->res_frc;
 
+   printf("allocating memory for fermion fields\n");
+
    if (npf>0)
    {
       pf=malloc(npf*sizeof(spinor*));
@@ -430,9 +433,13 @@ double hmc(hmc_params_t *hmc_params,act_params_t *act_params)
    else
       pf=NULL;
 
+   printf("memory allocated\n");
+
    accept=0;
 
    datafile_headers(hmc_params, act_params);
+
+   printf("headers written\n");
 
    printf("tau %f \n", tau);
 
