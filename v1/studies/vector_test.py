@@ -60,7 +60,7 @@ fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2,2, figsize=(16, 10))
 kappa = 0.24
 m = 0.5*((1/kappa) - 4)
 
-ax1.errorbar(m*np.arange(L)[1:L//2], (summed_over_0_avg)[1:L//2]*np.arange(L)[1:L//2], 3*summed_over_0_std[1:L//2]*np.arange(L)[1:L//2], color='black', fmt='.-', capsize=2)
+ax1.scatter(m*np.arange(L)[1:L//2], (summed_over_0_avg)[1:L//2]*m*np.arange(L)[1:L//2], color='black', marker='s')
 # ax1.errorbar(np.arange(L)+1, summed_over_0_avg[::-1], 3*summed_over_0_std[::-1], color='black', fmt='.:', capsize=2)
 if log_plot:
     ax1.set_yscale('log')
@@ -82,12 +82,17 @@ def compute_integral(xm):
     result, error = quad(integrand, 0, np.inf, args=(xm,))
     return result
 
-scale = 3.8
-xm_values = m*np.linspace(0, L//2., 100)
+scale = 1/(np.pi)
+xm_values = m*np.linspace(0, L//2., 256)
 integral_values = np.array([compute_integral(xm) for xm in xm_values])
 ax1.plot(xm_values, scale*(integral_values), label=f"m={m}")
 # ax3.set_yscale('log')
 # ax3.set_xscale('log')
+
+print("xm_values = [" + ', '.join([str(x) for x in xm_values]) + ']')
+print("integral_values = [" + ', '.join([str(x) for x in integral_values]) + ']')
+print("xm_lattice = [" + ', '.join([str(x) for x in m*np.arange(L)[1:L//2]]) + ']') 
+print("xG00_lattice = [" + ', '.join([str(x) for x in (summed_over_0_avg)[1:L//2]*m*np.arange(L)[1:L//2]]) + ']') 
 
 fig.tight_layout()
 fig.savefig(f"{plot_folder}vector.png")
