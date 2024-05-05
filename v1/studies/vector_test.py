@@ -22,6 +22,14 @@ idx__ = folder.find("/")
 T = int(folder[idxT+1:idx_])   
 L = int(folder[idxL+1:idx__-2]) 
 
+subitem = folder[idx__+1:]
+idxk = subitem.find("k")
+idx_ = subitem.find("_")
+idxb = subitem.find("b")
+idx__ = subitem.find("/")
+kappa = float(subitem[idxk+1:idx_])
+beta = float(subitem[idxb+1:idx__-2])
+
 batch_size = 1
 log_plot = False
 corr = 'V0V0'
@@ -31,10 +39,9 @@ df = pd.read_csv(filename)
 time = df.iloc[:, 0].values
 number_of_time_values = len(time)
 df = df.drop(df.columns[0], axis=1)
-if df.shape[1] != (T) * (L): # remove +1
+if df.shape[1] != (T) * (L): 
     raise ValueError("The number of elements in the CSV does not match number_of_time_values * T * L")
-reshaped_array = df.values.reshape(number_of_time_values, T, L) # remove +1
-# reshaped_array = reshaped_array[ntherm:,1:,1:] # remove line
+reshaped_array = df.values.reshape(number_of_time_values, T, L)
 
 # batch batch_size consecutive values
 new_shape = (reshaped_array.shape[0] // batch_size, batch_size) + reshaped_array.shape[1:]
@@ -57,21 +64,14 @@ summed_over_1_std = np.std(summed_over_1, axis=0)*np.sqrt((jackknife_means.shape
 
 fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2,2, figsize=(16, 10))
 
-kappa = 0.24
 m = 0.5*((1/kappa) - 4)
 
 ax1.scatter(m*np.arange(L)[1:L//2], (summed_over_0_avg)[1:L//2]*m*np.arange(L)[1:L//2], color='black', marker='s')
-# ax1.errorbar(np.arange(L)+1, summed_over_0_avg[::-1], 3*summed_over_0_std[::-1], color='black', fmt='.:', capsize=2)
 if log_plot:
     ax1.set_yscale('log')
 ax1.set_xlabel('x')
-# ax1.set_xlim(0, 15)
-# ax1.set_ylim(0, 0.5)
-# ax1.set_yscale('log')
-# ax1.set_xscale('log')
 
 ax2.errorbar(np.arange(T)[1:], (summed_over_1_avg)[1:], 3*summed_over_1_std[1:], color='black', fmt='.-', capsize=2)
-# ax2.errorbar(np.arange(T)+1, summed_over_1_avg[::-1], 3*summed_over_1_std[::-1], color='black', fmt='.:', capsize=2)
 if log_plot:
     ax2.set_yscale('log')
 ax2.set_xlabel('t')
@@ -86,8 +86,7 @@ scale = 1/(np.pi)
 xm_values = m*np.linspace(0, L//2., 256)
 integral_values = np.array([compute_integral(xm) for xm in xm_values])
 ax1.plot(xm_values, scale*(integral_values), label=f"m={m}")
-# ax3.set_yscale('log')
-# ax3.set_xscale('log')
+
 
 print("xm_values = [" + ', '.join([str(x) for x in xm_values]) + ']')
 print("integral_values = [" + ', '.join([str(x) for x in integral_values]) + ']')
@@ -98,4 +97,6 @@ fig.tight_layout()
 fig.savefig(f"{plot_folder}vector.png")
 plt.close(fig)
 
-print(m)
+print("m0*L = ", m*L)
+
+
