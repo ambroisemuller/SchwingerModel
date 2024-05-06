@@ -451,6 +451,7 @@ double hmc(hmc_params_t *hmc_params,act_params_t *act_params)
       {
          assign_link(gauge,gauge_old);
 
+
          /* initialize pseudofermions and momenta */
          H1=start_hmc();
 

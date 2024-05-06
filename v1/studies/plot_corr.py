@@ -21,7 +21,7 @@ idx__ = folder.find("/")
 T = int(folder[idxT+1:idx_])   
 L = int(folder[idxL+1:idx__-2]) 
 
-batch_size = 1
+batch_size = 10
 
 def plot_correlator(corr, title, log_plot):
     filename = f"{data_folder}{corr}.csv"

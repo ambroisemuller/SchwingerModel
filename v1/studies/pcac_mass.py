@@ -8,7 +8,7 @@ import matplotlib as mpl
 mpl.rcParams['font.family'] = 'STIXGeneral'
 mpl.rcParams['font.size'] = 12
 
-batch_size = 1
+batch_size = 10
 
 def plot_pcac_mass(T, L, data_folder, plot_folder, ntherm, sum_axis, plot=False):
 
