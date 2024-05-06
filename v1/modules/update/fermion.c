@@ -68,7 +68,7 @@ void fermion_force1(double f[V][D], spinor *phi, double kappa, double mu, double
    complex double c;
 
    /* v1=Q^-2 phi */
-   cg(phi, v1, kappa, mu, res, 1000);
+   cg(phi, v1, kappa, mu, res, MAX_CG_STEPS);
 
    /* v2=Q^-1 phi */
    dirac(v1, v2, kappa, mu);
@@ -93,7 +93,7 @@ void fermion_force1(double f[V][D], spinor *phi, double kappa, double mu, double
 
 double fermion_action1(spinor *phi,double kappa,double mu,double res)
 {
-   cg(phi,v1,kappa,mu,res,1000);
+   cg(phi,v1,kappa,mu,res,MAX_CG_STEPS);
 
    return creal(scalar_prod(phi,v1));
 }
@@ -105,7 +105,7 @@ double setpf2(spinor *pf,double kappa,double mu1,double mu2,double res)
 
    gauss_spinor(pf);
 
-   cg(pf,v1,kappa,mu2,res,1000);
+   cg(pf,v1,kappa,mu2,res,MAX_CG_STEPS);
    assign_spinor(v1,v2);
    dirac(v2,v1,kappa,-mu2);
    gamma5(v1);

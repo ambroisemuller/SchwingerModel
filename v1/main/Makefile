@@ -65,8 +65,8 @@ CFLAGS = -std=c99 -pedantic -fstrict-aliasing -fopenmp \
 
 SHELL=/bin/bash
 
-CC=gcc # on linux/windows where gcc is path
-# CC=/opt/homebrew/opt/llvm/bin/clang # on macos
+# CC=gcc # on linux/windows where gcc is path
+CC=/opt/homebrew/opt/llvm/bin/clang # on macos
 
 PGMS= $(MAIN) $(MODULES)
 

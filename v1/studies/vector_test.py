@@ -62,11 +62,11 @@ summed_over_1 = np.sum(jackknife_means, axis=2)
 summed_over_1_avg = np.mean(summed_over_1, axis=0)
 summed_over_1_std = np.std(summed_over_1, axis=0)*np.sqrt((jackknife_means.shape[0]-1)/jackknife_means.shape[0])
 
-fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2,2, figsize=(16, 10))
+fig, (ax1, ax2) = plt.subplots(1,2, figsize=(12, 4))
 
 m = 0.5*((1/kappa) - 4)
 
-ax1.scatter(m*np.arange(L)[1:L//2], (summed_over_0_avg)[1:L//2]*m*np.arange(L)[1:L//2], color='black', marker='s')
+ax1.scatter(m*np.arange(L)[1:L//2], (summed_over_0_avg)[1:L//2]*m*(np.arange(L)[1:L//2]), color='black', marker='s')
 if log_plot:
     ax1.set_yscale('log')
 ax1.set_xlabel('x')
@@ -80,13 +80,14 @@ def integrand(k, xm):
     return xm*(1/(2*np.pi))*np.exp(-2*xm*np.sqrt(k**2+1))*(1+(1-k**2)/(1+k**2))
 def compute_integral(xm):
     result, error = quad(integrand, 0, np.inf, args=(xm,))
-    return result
+    return 2*result
 
-scale = 1/(np.pi)
+scale = 1/(4*np.pi)
 xm_values = m*np.linspace(0, L//2., 256)
 integral_values = np.array([compute_integral(xm) for xm in xm_values])
 ax1.plot(xm_values, scale*(integral_values), label=f"m={m}")
 
+ax1.set_xlim(0, 3)
 
 print("xm_values = [" + ', '.join([str(x) for x in xm_values]) + ']')
 print("integral_values = [" + ', '.join([str(x) for x in integral_values]) + ']')

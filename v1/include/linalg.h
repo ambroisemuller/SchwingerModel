@@ -19,4 +19,6 @@ extern double complex local_scalar_prod(spinor phi,spinor psi);
 extern void mulr_add_assign(spinor *c,spinor *a,double z,spinor *b);
 extern void mulc_add_assign(spinor *a,spinor *b,double complex z);
 
+#define MAX_CG_STEPS 10000
+
 #endif
