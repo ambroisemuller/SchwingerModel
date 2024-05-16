@@ -129,7 +129,7 @@ static void compute_correlators()
     complex double S00_S11c, S01_S10c, S00_S01c, S10_S11c, S00_S10c, S01_S11c;
     int zero_index, x_index, t_index;                   /* zero = 0, otherwise middle of lattice     L*(T/2) + L/2       */
     int x, t, actual_x_index, actual_t_index, actual_index;           /* workspace */
-    int sample_index;
+    int sample_index, center_x, center_t;
     
     /* zero all global variables */
     condensate = 0;
@@ -173,11 +173,19 @@ static void compute_correlators()
         /* measure correlators */
         for (site_index = 0; site_index < V; site_index++) 
         {
+            if (CENTER_ORIGIN) {
+                center_t = L/2; 
+                center_x = L/2; 
+            } else {
+                center_t = 0; 
+                center_x = 0;  
+            }
+            
             
             t = site_index / L;
             x = site_index % L;
-            actual_t_index = (t-t_index+T)%T;
-            actual_x_index = (x-x_index+L)%L;
+            actual_t_index = (t-t_index+T+center_t)%T;
+            actual_x_index = (x-x_index+L+center_x)%L;
             actual_index = actual_t_index*L + actual_x_index;
 
             corr_P__P_[actual_index] += creal(
@@ -200,7 +208,7 @@ static void compute_correlators()
             S00_S11c = phi[0][site_index].s[0] * conj(phi[1][site_index].s[1]);
             S01_S10c = phi[1][site_index].s[0] * conj(phi[0][site_index].s[1]);
 
-            corr_V0_V0[actual_index] += /* creal(S00_S11c); */ (2*creal(S00_S11c) - 2*creal(S01_S10c))/((double)(CORR_SAMPLES)); /* something must be wrong here, no consistent with G00 = -G11 result */
+            corr_V0_V0[actual_index] += /* creal(S00_S11c); */ (2*creal(S00_S11c) - 2*creal(S01_S10c))/((double)(CORR_SAMPLES));
             corr_V0_V1[actual_index] += /* cimag(S00_S11c); */ (- 2*cimag(S00_S11c) + 2*cimag(S01_S10c))/((double)(CORR_SAMPLES));
             corr_V1_V0[actual_index] += /* cimag(S01_S10c); */ (+ 2*cimag(S00_S11c) + 2*cimag(S01_S10c))/((double)(CORR_SAMPLES));
             corr_V1_V1[actual_index] += /* creal(S01_S10c); */ (+ 2*creal(S00_S11c) + 2*creal(S01_S10c))/((double)(CORR_SAMPLES));
@@ -521,5 +529,19 @@ void run_plot_scripts()
     out = system(command);
     if (out == 0){
         printf("plotting of pion mass successful\n");
+    }
+    if (FREE_THEORY_TEST) {
+        sprintf(command, "cd ../studies/ && python3 vector_free.py %s", study_folder);
+        out = system("");
+        out = system(command);
+        if (out == 0){
+            printf("plotting of pion mass successful\n");
+        }
+        sprintf(command, "cd ../studies/ && python3 pseudoscalar_free.py %s", study_folder);
+        out = system("");
+        out = system(command);
+        if (out == 0){
+            printf("plotting of pion mass successful\n");
+        }
     }
 }

@@ -3,8 +3,14 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
 import sys;
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib import rc
 import matplotlib as mpl
-mpl.rcParams['font.family'] = 'STIXGeneral'
+# mpl.rcParams['font.family'] = 'STIXGeneral'
+rc('font', **{'family': 'serif', 'serif': ['Computer Modern']})
+rc('text', usetex=True)
+mpl.rcParams['mathtext.fontset'] = 'cm'
 mpl.rcParams['font.size'] = 12
 
 if __name__=="__main__":
@@ -55,26 +61,26 @@ if __name__=="__main__":
 
     fig, ((ax_dH, ax_acc), (ax_plaq, ax_qtop)) = plt.subplots(2, 2, figsize=(12, 6))
     
-    ax_dH.plot(t, dH, '.-', label='HMC measurements')
-    ax_dH.plot(t[ntherm:], [np.mean(dH[ntherm:]) for _ in t[ntherm:]], '--', label="avg %f\nstd %f"%(np.mean(dH[ntherm:]), np.std(dH[ntherm:])))
+    ax_dH.plot(t, dH, '.-', label='HMC measurements', color='black')
+    ax_dH.plot(t[ntherm:], [np.mean(dH[ntherm:]) for _ in t[ntherm:]], '--', color='gray', label="avg %f\nstd %f"%(np.mean(dH[ntherm:]), np.std(dH[ntherm:])))
     ax_dH.set_xlabel(r"Simulation time $\tau$")
     ax_dH.set_ylabel(r"Energy change $dH$")
     ax_dH.legend()
 
-    ax_acc.plot(t, acc, '.-', label='HMC measurements')
-    ax_acc.plot(t[ntherm:], [np.mean(acc[ntherm:]) for _ in t[ntherm:]], '--', label="avg %f\nstd %f"%(np.mean(acc[ntherm:]), np.std(acc[ntherm:])))
+    ax_acc.plot(t, acc, '.-', label='HMC measurements', color='black')
+    ax_acc.plot(t[ntherm:], [np.mean(acc[ntherm:]) for _ in t[ntherm:]], '--', color='gray', label="avg %f\nstd %f"%(np.mean(acc[ntherm:]), np.std(acc[ntherm:])))
     ax_acc.set_xlabel(r"Simulation time $\tau$")
     ax_acc.set_ylabel(r"Acceptance")
     ax_acc.legend()
 
-    ax_plaq.plot(t, plaq, '.-', label='HMC measurements')
-    ax_plaq.plot(t[ntherm:], [np.mean(plaq[ntherm:]) for _ in t[ntherm:]], '--', label="avg %f\nstd %f"%(np.mean(plaq[ntherm:]), np.std(plaq[ntherm:])))
+    ax_plaq.plot(t, plaq, '.-', label='HMC measurements', color='black')
+    ax_plaq.plot(t[ntherm:], [np.mean(plaq[ntherm:]) for _ in t[ntherm:]], '--', color='gray', label="avg %f\nstd %f"%(np.mean(plaq[ntherm:]), np.std(plaq[ntherm:])))
     ax_plaq.set_xlabel(r"Simulation time $\tau$")
     ax_plaq.set_ylabel(r"Plaquette")
     ax_plaq.legend()
 
-    ax_qtop.plot(t, qtop, '.-', label='HMC measurements')
-    ax_qtop.plot(t[ntherm:], [np.mean(qtop[ntherm:]) for _ in t[ntherm:]], '--', label="avg %f\nstd %f"%(np.mean(qtop[ntherm:]), np.std(qtop[ntherm:])))
+    ax_qtop.plot(t, qtop, '.-', label='HMC measurements', color='black')
+    ax_qtop.plot(t[ntherm:], [np.mean(qtop[ntherm:]) for _ in t[ntherm:]], '--', color='gray', label="avg %f\nstd %f"%(np.mean(qtop[ntherm:]), np.std(qtop[ntherm:])))
     ax_qtop.set_xlabel(r"Simulation time $\tau$")
     ax_qtop.set_ylabel(r"Topological charge")
     ax_qtop.legend()
@@ -88,8 +94,8 @@ if __name__=="__main__":
 
     try:
         fig_cond, ax_cond = plt.subplots(1, 1, figsize=(12, 3))
-        ax_cond.plot(t, condensate, '.-', label='Lattice measurements')
-        ax_cond.plot(t[ntherm:], [np.mean(condensate[ntherm:]) for _ in t[ntherm:]], '--', label="avg %f\nstd %f"%(np.mean(condensate[ntherm:]), np.std(condensate[ntherm:])))
+        ax_cond.plot(t, condensate, '.-', label='Lattice measurements', color='black')
+        ax_cond.plot(t[ntherm:], [np.mean(condensate[ntherm:]) for _ in t[ntherm:]], '--', color='gray', label="avg %f\nstd %f"%(np.mean(condensate[ntherm:]), np.std(condensate[ntherm:])))
         ax_cond.set_xlabel(r"Simulation time $\tau$")
         ax_cond.set_ylabel(r"Chiral fermion condensate")
         ax_cond.legend()
