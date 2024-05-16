@@ -4,8 +4,14 @@ import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
 from scipy.optimize import fsolve
 import sys
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib import rc
 import matplotlib as mpl
-mpl.rcParams['font.family'] = 'STIXGeneral'
+# mpl.rcParams['font.family'] = 'STIXGeneral'
+rc('font', **{'family': 'serif', 'serif': ['Computer Modern']})
+rc('text', usetex=True)
+mpl.rcParams['mathtext.fontset'] = 'cm'
 mpl.rcParams['font.size'] = 12
 
 batch_size = 10

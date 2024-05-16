@@ -4,8 +4,14 @@ import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
 from scipy.optimize import fsolve
 import sys
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib import rc
 import matplotlib as mpl
-mpl.rcParams['font.family'] = 'STIXGeneral'
+# mpl.rcParams['font.family'] = 'STIXGeneral'
+rc('font', **{'family': 'serif', 'serif': ['Computer Modern']})
+rc('text', usetex=True)
+mpl.rcParams['mathtext.fontset'] = 'cm'
 mpl.rcParams['font.size'] = 12
 
 batch_size = 10
@@ -41,7 +47,7 @@ def plot_pion_mass(T, L, data_folder, plot_folder, ntherm, sum_axis, plot=False)
     summed_jackknife_mean_std = np.std(summed_jackknife_means, axis=0)
 
     fig, (ax1, ax3) = plt.subplots(1, 2, figsize=(12, 4))
-    ax1.errorbar(np.arange(dim_sum), summed_jackknife_mean_avg, 3*summed_jackknife_mean_std, fmt='.-', color='black', capsize=2)
+    ax1.errorbar(np.arange(dim_sum)[1:], summed_jackknife_mean_avg[1:], 3*summed_jackknife_mean_std[1:], fmt='.-', color='black', capsize=2)
     ax1.set_yscale('log')
     ax1.set_title(r'$\langle P(x)  P(0) \rangle$')
 

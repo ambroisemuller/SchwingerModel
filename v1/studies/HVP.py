@@ -20,7 +20,7 @@ idx__ = folder.find("/")
 T = int(folder[idxT+1:idx_])      # remove -1
 L = int(folder[idxL+1:idx__-2])   # remove -1
 
-batch_size = 100
+batch_size = 1
 
 # V0V0
 
@@ -118,8 +118,8 @@ mean_jackknife_mean_11 = np.mean(jackknife_means_11, axis=0)
 
 min_dim = min([jackknife_means_00.shape[0], jackknife_means_01.shape[0], jackknife_means_10.shape[0], jackknife_means_11.shape[0]])
 
-jackknife_means_tot = jackknife_means_00[:min_dim] + jackknife_means_11[:min_dim] - jackknife_means_10[:min_dim] - jackknife_means_01[:min_dim]
-mean_jackknife_mean_tot = np.mean(jackknife_means_tot, axis=0)
+jackknife_means_tot = jackknife_means_00[:min_dim] + jackknife_means_01[:min_dim] #+ jackknife_means_11[:min_dim] - jackknife_means_10[:min_dim] 
+mean_jackknife_mean_tot = np.mean(jackknife_means_tot, axis=0)[:L//2, :T//2]
 
 # FFT
 
@@ -127,14 +127,22 @@ x = np.arange(L)
 t = np.arange(T)
 X_mg, T_mg = np.meshgrid(x, t)
 
-q_arr = np.arange(1, 8, 0.2)
+q_min, q_max = 1, 8
+q_arr = np.arange(q_min, q_max, 0.2)
+q_range = np.linspace(q_min, q_max, 100)
+
+mass = 0.01
+e_coupling = 0.05
+R = np.sqrt(1+4*(mass/q_range)**2)
+prediction = (1+2*(mass/q_range)**2*(1/R)*np.log((R-1)/(R+1)))*(e_coupling**2)/(np.pi*q_range**2)
+
 Re_HVP_avg = []
 Re_HVP_std = []
 Im_HVP_avg = []
 Im_HVP_std = []
 
 for q in q_arr:
-    exp_term_q = np.exp(1j*q*(X_mg+T_mg)/L)
+    exp_term_q = np.exp(1j*q*(X_mg)/L) # q = (0, q)
     hvp_samples_q = np.array([(1/(2*q*q*L*T))*np.sum(np.sum(exp_term_q*jackknife_means_tot[i,:,:], axis=1), axis=0) for i in range(jackknife_means_tot.shape[0])])
     exp_term_2q = np.exp(1j*q*(X_mg+T_mg)/L)
     hvp_samples_2q = np.array([(1/(8*q*q*L*T))*np.sum(np.sum(exp_term_2q*jackknife_means_tot[i,:,:], axis=1), axis=0) for i in range(jackknife_means_tot.shape[0])])
@@ -213,9 +221,12 @@ ax3.set_xlabel(r'$t$')
 ax3.set_ylabel(r'$x$')
 
 ax6 = fig.add_subplot(236)
-ax6.errorbar(q_arr, Re_HVP_avg, Re_HVP_std)
-ax6.errorbar(q_arr, Im_HVP_avg, Im_HVP_std)
-# ax6.set_yscale('log')
+ax6.errorbar(q_arr, -np.array(Re_HVP_avg), Re_HVP_std)
+ax6.plot(q_range, prediction, color='black')
+# ax6.errorbar(q_arr, Im_HVP_avg, Im_HVP_std)
+ax6.set_yscale('log')
+
+
 
 fig.tight_layout()    
 fig.savefig(f"{plot_folder}HVP.png")
