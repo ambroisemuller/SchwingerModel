@@ -9,7 +9,7 @@ from matplotlib import rc
 import matplotlib as mpl
 # mpl.rcParams['font.family'] = 'STIXGeneral'
 rc('font', **{'family': 'serif', 'serif': ['Computer Modern']})
-rc('text', usetex=True)
+# rc('text', usetex=True)
 mpl.rcParams['mathtext.fontset'] = 'cm'
 mpl.rcParams['font.size'] = 12
 
